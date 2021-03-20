@@ -20,8 +20,17 @@ GLFWwindow* window;
 
 #define should_close glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0
 
-int main( void )
-{
+Vertex make() {
+  Vertex output;
+  output.x = 1;
+  output.y = -1;
+  output.z = 322;
+
+  return output;
+}
+
+int main(void)
+{  
 	// Initialise GLFW
   glfwInit();
 
@@ -55,31 +64,13 @@ int main( void )
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
   size_t points_size = 9 * sizeof(float);
-  float *triangle = (float *)malloc(points_size);
+  Vertex triangle[3];
 
-  float p1[] = {0, 0, 0};
-  float p2[] = {0.1, 0.9, 0};
-  float p3[] = {0.9, 0.1, 0};
+  Vertex p1 = {0, 0, 0};
+  Vertex p2 = {0.1, 0.9, 0};
+  Vertex p3 = {0.9, 0.1, 0};
 
-  float **tvectors = malloc(3 * sizeof(float*));
-  float *tp1 = malloc(VECTOR_SIZE);
-  float *tp2 = malloc(VECTOR_SIZE);
-  float *tp3 = malloc(VECTOR_SIZE);
-  tvectors[0] = tp1;
-  tvectors[1] = tp2;
-  tvectors[2] = tp3;
-
-  float **space = malloc(3 * sizeof(float*));
-  float *x_vector = malloc(VECTOR_SIZE);
-  float *y_vector = malloc(VECTOR_SIZE);
-  float *z_vector = malloc(VECTOR_SIZE);
-  z_vector[0] = 0;
-  z_vector[1] = 0;
-  z_vector[2] = 0;
-
-  space[0] = x_vector;
-  space[1] = y_vector;
-  space[2] = z_vector;
+  Space space;
 
   double step = M_PI / 256;
   
@@ -87,21 +78,23 @@ int main( void )
     double x_angle = step * i;
     double y_angle = x_angle + M_PI / 2;
 
-    x_vector[0] = cos(x_angle);
-    x_vector[1] = sin(x_angle);
-    x_vector[2] = 0;
+    space.x.x = cos(x_angle);
+    space.x.y = sin(x_angle);
+    space.x.z = 0;
 
-    y_vector[0] = cos(y_angle);
-    y_vector[1] = sin(y_angle);
-    y_vector[2] = 0;
+    space.y.x = cos(y_angle);
+    space.y.y = sin(y_angle);
+    space.y.z = 0;
 
-    set_transformed(p1, space, tp1);
-    set_transformed(p2, space, tp2);
-    set_transformed(p3, space, tp3);
+    space.z.x = 0;
+    space.z.y = 0;
+    space.z.z = 0;
 
-    set_matrix(tvectors, 3, triangle);
-
-    glBufferData(GL_ARRAY_BUFFER, points_size, triangle, GL_STATIC_DRAW);
+    triangle[0] = transformed(p1, space);
+    triangle[1] = transformed(p2, space);
+    triangle[2] = transformed(p3, space);
+    
+    glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
     glClear(GL_COLOR_BUFFER_BIT);
 
     // 1rst attribute buffer : vertices

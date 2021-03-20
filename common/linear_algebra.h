@@ -4,13 +4,22 @@
 #define COMPONENTS_COUNT 3
 #define VECTOR_SIZE sizeof(float) * COMPONENTS_COUNT
 
+#include <stdlib.h>
+
+typedef struct {
+  float x, y, z;
+} Vertex;
+
+typedef struct {
+  Vertex x, y, z;
+} Space;
+
+#define print_vertex(V) printf("x: %f, y: %f, z: %f\n", V)
+
 void set_matrix(float **vectors, int vectors_count, float *output);
 float *make_matrix(float **vectors, int vectors_count);
-void set_sum(float *vec1, float *vec2, float *vec3, float *output);
-float *sum(float *vec1, float *vec2, float *vec3);
-void set_multiply(float *vector, float scalar, float *output);
-float *multiply(float *vector, float scalar);
-void set_transformed(float *vector, float **space, float *output);
-float *transformed(float *vector, float **space);
+Vertex sum(Vertex *array, size_t count);
+Vertex multiply(Vertex vector, float scalar);
+Vertex transformed(Vertex vector, Space space);
 
 #endif

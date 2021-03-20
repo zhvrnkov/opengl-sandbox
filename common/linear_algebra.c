@@ -18,52 +18,29 @@ float *make_matrix(float **vectors, int vectors_count) {
   return output;
 }
 
-void set_sum(float *vec1, float *vec2, float *vec3, float *output) {
-  for (int i = 0; i < COMPONENTS_COUNT; i++) {
-    output[i] = vec1[i] + vec2[i] + vec3[i];
+Vertex sum(Vertex *array, size_t count) {
+  Vertex output = {0,0,0};
+  for (int i = 0; i < count; i++) {
+    output.x += array[i].x;
+    output.y += array[i].y;
+    output.z += array[i].z;
   }
-}
-
-float *sum(float *vec1, float *vec2, float *vec3) {
-  float *output = malloc(VECTOR_SIZE);
-  set_sum(vec1, vec2, vec3, output);
   return output;
 }
 
-void set_multiply(float *vector, float scalar, float *output) {
-  for (int i = 0; i < COMPONENTS_COUNT; i++) {
-    output[i] = vector[i] * scalar;
-  }
-}
-
-float *multiply(float *vector, float scalar) {
-  float *output = malloc(VECTOR_SIZE);
-  set_multiply(vector, scalar, output);
+Vertex multiply(Vertex vector, float scalar) {
+  Vertex output;
+  output.x = vector.x * scalar;
+  output.y = vector.y * scalar;
+  output.z = vector.z * scalar;
   return output;
 }
 
-void set_transformed(float *vector, float **space, float *output) {
-  float *transformed_x = multiply(space[0], vector[0]);
-  float *transformed_y = multiply(space[1], vector[1]);
-  float *transformed_z = multiply(space[2], vector[2]);
+Vertex transformed(Vertex vector, Space space) {
+  Vertex ts[3];
+  ts[0] = multiply(space.x, vector.x);
+  ts[1] = multiply(space.y, vector.y);
+  ts[2] = multiply(space.z, vector.z);
 
-  set_sum(transformed_x, transformed_y, transformed_z, output);
-  
-  free(transformed_x);
-  free(transformed_y);
-  free(transformed_z);
-}
-
-float *transformed(float *vector, float **space) {
-  float *transformed_x = multiply(space[0], vector[0]);
-  float *transformed_y = multiply(space[1], vector[1]);
-  float *transformed_z = multiply(space[2], vector[2]);
-
-  float *output = sum(transformed_x, transformed_y, transformed_z);
-  
-  free(transformed_x);
-  free(transformed_y);
-  free(transformed_z);
-  
-  return output;
+  return sum(ts, 3);
 }
