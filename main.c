@@ -134,18 +134,87 @@ void reload_shaders(void) {
     printf("Successfully Reload the Shaders\n");
 }
 
+#define COMPONENTS_COUNT 3
+#define VECTOR_SIZE sizeof(float) * COMPONENTS_COUNT
+
+void set_matrix(float **vectors, int vectors_count, float *output) {
+  for (int vector_index = 0; vector_index < vectors_count; vector_index++) {
+    for (int vector_component = 0; vector_component < COMPONENTS_COUNT; vector_component++) {
+      int base = vector_index * COMPONENTS_COUNT;
+      output[base + vector_component] = vectors[vector_index][vector_component];
+    }
+  }
+}
+
+float *make_matrix(float **vectors, int vectors_count) {
+  int total_number_of_components = vectors_count * COMPONENTS_COUNT;
+  float *output = malloc(total_number_of_components * sizeof(float));
+  set_matrix(vectors, vectors_count, output);
+  return output;
+}
+
+void set_sum(float *vec1, float *vec2, float *vec3, float *output) {
+  for (int i = 0; i < COMPONENTS_COUNT; i++) {
+    output[i] = vec1[i] + vec2[i] + vec3[i];
+  }
+}
+
+float *sum(float *vec1, float *vec2, float *vec3) {
+  float *output = malloc(VECTOR_SIZE);
+  set_sum(vec1, vec2, vec3, output);
+  return output;
+}
+
+void set_multiply(float *vector, float scalar, float *output) {
+  for (int i = 0; i < COMPONENTS_COUNT; i++) {
+    output[i] = vector[i] * scalar;
+  }
+}
+
+float *multiply(float *vector, float scalar) {
+  float *output = malloc(VECTOR_SIZE);
+  set_multiply(vector, scalar, output);
+  return output;
+}
+
+void set_transformed(float *vector, float **space, float *output) {
+  float *transformed_x = multiply(space[0], vector[0]);
+  float *transformed_y = multiply(space[1], vector[1]);
+  float *transformed_z = multiply(space[2], vector[2]);
+
+  set_sum(transformed_x, transformed_y, transformed_z, output);
+  
+  free(transformed_x);
+  free(transformed_y);
+  free(transformed_z);
+}
+
+float *transformed(float *vector, float **space) {
+  float *transformed_x = multiply(space[0], vector[0]);
+  float *transformed_y = multiply(space[1], vector[1]);
+  float *transformed_z = multiply(space[2], vector[2]);
+
+  float *output = sum(transformed_x, transformed_y, transformed_z);
+  
+  free(transformed_x);
+  free(transformed_y);
+  free(transformed_z);
+  
+  return output;
+}
+
 int main( void )
 {
 	// Initialise GLFW
   glfwInit();
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, 256);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow( 1080, 1080, "Tutorial 02 - Red triangle", NULL, NULL);
+	window = glfwCreateWindow(1080, 1080,"Tutorial 02 - Red triangle", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
 	glewExperimental = 1; // Needed for core profile
@@ -164,61 +233,59 @@ int main( void )
 	// Create and compile our GLSL program from the shaders
   reload_shaders();
 
-  size_t points_size = 9 * sizeof(float);
-  GLfloat up_triangle[] = {
-    0, 0.5, 0,
-    0.25, 0, 0,
-    -0.25, 0, 0
-	};
-  
-	GLuint buffer;
+  GLuint buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
-  double step = M_PI / 2048;
-  GLfloat *triangle = (GLfloat *)malloc(points_size);
+  size_t points_size = 9 * sizeof(float);
+  float *triangle = (float *)malloc(points_size);
+
+  float p1[] = {0, 0, 0};
+  float p2[] = {0.1, 0.9, 0};
+  float p3[] = {0.9, 0.1, 0};
+
+  float **tvectors = malloc(3 * sizeof(float*));
+  float *tp1 = malloc(VECTOR_SIZE);
+  float *tp2 = malloc(VECTOR_SIZE);
+  float *tp3 = malloc(VECTOR_SIZE);
+  tvectors[0] = tp1;
+  tvectors[1] = tp2;
+  tvectors[2] = tp3;
+
+  float **space = malloc(3 * sizeof(float*));
+  float *x_vector = malloc(VECTOR_SIZE);
+  float *y_vector = malloc(VECTOR_SIZE);
+  float *z_vector = malloc(VECTOR_SIZE);
+  z_vector[0] = 0;
+  z_vector[1] = 0;
+  z_vector[2] = 0;
+
+  space[0] = x_vector;
+  space[1] = y_vector;
+  space[2] = z_vector;
+
+  double step = M_PI / 256;
+  
   for(int i = 0; should_close; i++) {
-    memcpy(triangle, up_triangle, points_size);
+    double x_angle = step * i;
+    double y_angle = x_angle + M_PI / 2;
 
-    double angle1 = step * i;
-    double angle2 = angle1 + (2 * M_PI / 3);
-    double angle3 = angle2 + (2 * M_PI / 3);
+    x_vector[0] = cos(x_angle);
+    x_vector[1] = sin(x_angle);
+    x_vector[2] = 0;
 
-    triangle[0] = cos(angle1);
-    triangle[1] = sin(angle1);
+    y_vector[0] = cos(y_angle);
+    y_vector[1] = sin(y_angle);
+    y_vector[2] = 0;
 
-    triangle[3] = cos(angle2);
-    triangle[4] = sin(angle2);
+    set_transformed(p1, space, tp1);
+    set_transformed(p2, space, tp2);
+    set_transformed(p3, space, tp3);
 
-    triangle[6] = cos(angle3);
-    triangle[7] = sin(angle3);
-        
-    // double head_step = step * i;
-    // double sin_value1 = sin(head_step);
-    // double cos_value1 = cos(head_step);
+    set_matrix(tvectors, 3, triangle);
 
-    // double t = M_PI / 2;
-    // double bottom_step2 = step * i - t;
-    // double sin_value2 = -sin(bottom_step2);
-    // double cos_value2 = -cos(bottom_step2);
-
-    // double bottom_step3 = step * i + t;
-    // double sin_value3 = sin(bottom_step3);
-    // double cos_value3 = cos(bottom_step3);
-    
-    // memcpy(triangle, up_triangle, points_size);
-
-    // triangle[0] = cos_value1;
-    // triangle[1] = sin_value1;
-    
-    // triangle[4] = sin_value2 * 0.25;
-    // triangle[3] *= cos_value2;
-    
-    // triangle[7] = sin_value3 * -0.25;
-    // triangle[6] *= cos_value3;
-    
     glBufferData(GL_ARRAY_BUFFER, points_size, triangle, GL_STATIC_DRAW);
-    //    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
