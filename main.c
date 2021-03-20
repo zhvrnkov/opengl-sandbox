@@ -119,10 +119,10 @@ void reload_shaders(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     GLuint vert = 0;
-    compile_shader_file("./main.vert", GL_VERTEX_SHADER, &vert);
+    compile_shader_file("./shaders/main.vert", GL_VERTEX_SHADER, &vert);
 
     GLuint frag = 0;
-    compile_shader_file("./main.frag", GL_FRAGMENT_SHADER, &frag);
+    compile_shader_file("./shaders/main.frag", GL_FRAGMENT_SHADER, &frag);
 
     link_program(vert, frag, &program);
 
