@@ -1,6 +1,7 @@
 #include "linear_algebra.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 void set_matrix(float **vectors, int vectors_count, float *output) {
   for (int vector_index = 0; vector_index < vectors_count; vector_index++) {
@@ -43,4 +44,77 @@ Vertex transformed(Vertex vector, Space space) {
   ts[2] = multiply(space.z, vector.z);
 
   return sum(ts, 3);
+}
+
+Vertex transformeds(Vertex vector, Space *spaces, size_t space_count) {
+  Vertex output = vector;
+  for (int i = 0; i < space_count; i++) {
+    output = transformed(output, spaces[i]);
+  }
+  return output;
+}
+
+Space make_space() {
+  Space space;
+  space.x.x = 1;
+  space.x.y = 0;
+  space.x.z = 0;
+
+  space.y.x = 0;
+  space.y.y = 1;
+  space.y.z = 0;
+
+  space.z.x = 0;
+  space.z.y = 0;
+  space.z.z = 1;
+
+  return space;
+}
+
+Space x_rotated(Space space, double angle) {
+  double angle_between_axis = M_PI / 2;
+  Space output = space;
+
+  double y_angle = angle;
+  double z_angle = angle_between_axis + angle;
+
+  output.y.x = cos(y_angle);
+  output.y.z = sin(y_angle);
+
+  output.z.x = cos(z_angle);
+  output.z.z = sin(z_angle);
+
+  return output;  
+}
+
+Space z_rotated(Space space, double angle) {
+  double angle_between_axis = M_PI / 2;
+  Space output = space;
+
+  double x_angle = angle;
+  double y_angle = angle_between_axis + angle;
+
+  output.x.x = cos(x_angle);
+  output.x.y = sin(x_angle);
+
+  output.y.x = cos(y_angle);
+  output.y.y = sin(y_angle);
+
+  return output;
+}
+
+Space y_rotated(Space space, double angle) {
+  double angle_between_axis = M_PI / 2;
+  Space output = space;
+
+  double x_angle = angle;
+  double z_angle = angle_between_axis + angle;
+
+  output.x.x = cos(x_angle);
+  output.x.z = sin(x_angle);
+
+  output.z.x = cos(z_angle);
+  output.z.z = sin(z_angle);
+
+  return output;  
 }

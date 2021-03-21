@@ -30,7 +30,7 @@ Vertex make() {
 }
 
 int main(void)
-{  
+{
 	// Initialise GLFW
   glfwInit();
 
@@ -66,36 +66,28 @@ int main(void)
   size_t points_size = 9 * sizeof(float);
   Vertex triangle[3];
 
-  Vertex p1 = {0, 0, 0};
-  Vertex p2 = {0.1, 0.9, 0};
-  Vertex p3 = {0.9, 0.1, 0};
+  Vertex p1 = {1, 0, 0};
+  Vertex p2 = {0, 0.01, 0};
+  Vertex p3 = {0.01, 0, 0};
 
-  Space space;
+  Space space = make_space();
 
   double step = M_PI / 256;
   
-  for(int i = 0; should_close; i++) {
-    double x_angle = step * i;
-    double y_angle = x_angle + M_PI / 2;
+  for(int i = 1; should_close; i++) {
+    double angle = step * i;
+    Space x_rotated_space = x_rotated(space, angle);
+    Space y_rotated_space = y_rotated(space, angle);
+    Space z_rotated_space = z_rotated(space, angle * 1/6);
+    size_t count = 2;
+    Space spaces[] = {y_rotated_space, z_rotated_space};
 
-    space.x.x = cos(x_angle);
-    space.x.y = sin(x_angle);
-    space.x.z = 0;
-
-    space.y.x = cos(y_angle);
-    space.y.y = sin(y_angle);
-    space.y.z = 0;
-
-    space.z.x = 0;
-    space.z.y = 0;
-    space.z.z = 0;
-
-    triangle[0] = transformed(p1, space);
-    triangle[1] = transformed(p2, space);
-    triangle[2] = transformed(p3, space);
+    triangle[0] = transformeds(p1, spaces, count);
+    triangle[1] = transformeds(p2, spaces, count);
+    triangle[2] = transformeds(p3, spaces, count);
     
     glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //    glClear(GL_COLOR_BUFFER_BIT);
 
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
