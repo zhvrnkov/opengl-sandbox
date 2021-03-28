@@ -58,13 +58,24 @@ int main(void)
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
   glBindBuffer(GL_ARRAY_BUFFER, VBO2);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  
+  GLuint EBO;
+  glGenBuffers(1, &EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
-  size_t points_size = 9 * sizeof(float);
-  Vertex triangle[3];
+  Vertex color[3];
+  Vertex triangle[4];
+  
+  unsigned int indices[] = {
+    0, 1, 2,
+    2, 3, 0
+  };
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
   Vertex p1 = {0.5, 0, 0};
   Vertex p2 = {0, 0.5, 0};
   Vertex p3 = {-0.5, 0, 0};
+  Vertex p4 = {0, -0.5, 0};
 
   Vertex c1 = {1, 0, 0};
   Vertex c2 = {0, 1, 0};
@@ -82,17 +93,18 @@ int main(void)
     size_t count = 2;
     Space spaces[] = {z_rotated_space, y_rotated_space};
 
-    triangle[0] = transformeds(c1, &z_rotated_space, 1);
-    triangle[1] = transformeds(c2, &z_rotated_space, 1);
-    triangle[2] = transformeds(c3, &z_rotated_space, 1);
+    color[0] = transformeds(c1, &z_rotated_space, 1);
+    color[1] = transformeds(c2, &z_rotated_space, 1);
+    color[2] = transformeds(c3, &z_rotated_space, 1);
     glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-    glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(color), (float *)color, GL_STATIC_DRAW);
     
     triangle[0] = transformeds(p1, spaces, count);
     triangle[1] = transformeds(p2, spaces, count);
     triangle[2] = transformeds(p3, spaces, count);
+    triangle[3] = transformeds(p4, spaces, count);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), (float *)triangle, GL_STATIC_DRAW);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -100,7 +112,7 @@ int main(void)
     glEnableVertexAttribArray(1);
 
     // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
