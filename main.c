@@ -89,13 +89,15 @@ int main(void)
     double angle = step * i;
     Space x_rotated_space = x_rotated(space, angle);
     Space y_rotated_space = y_rotated(space, angle);
-    Space z_rotated_space = z_rotated(space, angle * 1/6);
-    size_t count = 2;
+    Space z_rotated_space = z_rotated(spac e, angle * 1/6);
     Space spaces[] = {z_rotated_space, y_rotated_space};
+    Space ispaces[] = {z_rotated_space};
+    size_t icount = sizeof(ispaces) / sizeof(Space);
+    size_t count = sizeof(spaces) / sizeof(Space);
 
-    color[0] = transformeds(c1, &z_rotated_space, 1);
-    color[1] = transformeds(c2, &z_rotated_space, 1);
-    color[2] = transformeds(c3, &z_rotated_space, 1);
+    color[0] = transformeds(c1, ispaces, icount);
+    color[1] = transformeds(c2, ispaces, icount);
+    color[2] = transformeds(c3, ispaces, icount);
     glBindBuffer(GL_ARRAY_BUFFER, VBO2);
     glBufferData(GL_ARRAY_BUFFER, sizeof(color), (float *)color, GL_STATIC_DRAW);
     
