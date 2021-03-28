@@ -3,6 +3,6 @@
 
 #include <GL/glew.h>
 
-void reload_shaders(void);
+GLuint reload_shaders(void);
 
 #endif

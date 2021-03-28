@@ -20,15 +20,6 @@ GLFWwindow* window;
 
 #define should_close glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0
 
-Vertex make() {
-  Vertex output;
-  output.x = 1;
-  output.y = -1;
-  output.z = 322;
-
-  return output;
-}
-
 int main(void)
 {
 	// Initialise GLFW
@@ -52,16 +43,17 @@ int main(void)
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
+	GLuint VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 
 	// Create and compile our GLSL program from the shaders
-  reload_shaders();
+  GLuint program = reload_shaders();
 
-  GLuint buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+  GLuint VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
   size_t points_size = 9 * sizeof(float);
   Vertex triangle[3];
@@ -87,19 +79,9 @@ int main(void)
     triangle[2] = transformeds(p3, spaces, count);
     
     glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
-    //    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glVertexAttribPointer(
-                          0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-                          3,                  // size
-                          GL_FLOAT,           // type
-                          GL_FALSE,           // normalized?
-                          0,                  // stride
-                          (void*)0            // array buffer offset
-                          );
 
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
@@ -112,8 +94,8 @@ int main(void)
   }
 
 	// Cleanup VBO
-	glDeleteBuffers(1, &buffer);
-	glDeleteVertexArrays(1, &VertexArrayID);
+	glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &VAO);
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();

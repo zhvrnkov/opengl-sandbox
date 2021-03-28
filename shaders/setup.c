@@ -102,7 +102,7 @@ bool link_program(GLuint vert_shader, GLuint frag_shader, GLuint *program)
     return program;
 }
 
-void reload_shaders(void) {
+GLuint reload_shaders(void) {
     glDeleteProgram(program);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -121,5 +121,7 @@ void reload_shaders(void) {
     time_location = glGetUniformLocation(program, "time");
 
     printf("Successfully Reload the Shaders\n");
+
+    return program;
 }
 
