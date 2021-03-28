@@ -50,10 +50,14 @@ int main(void)
 	// Create and compile our GLSL program from the shaders
   GLuint program = reload_shaders();
 
-  GLuint VBO;
-	glGenBuffers(1, &VBO);
+  GLuint VBOs[2];
+	glGenBuffers(2, (GLuint *)&VBOs);
+  GLuint VBO = VBOs[0];
+  GLuint VBO2 = VBOs[1];
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
   size_t points_size = 9 * sizeof(float);
   Vertex triangle[3];
@@ -71,22 +75,31 @@ int main(void)
     Space x_rotated_space = x_rotated(space, angle);
     Space y_rotated_space = y_rotated(space, angle);
     Space z_rotated_space = z_rotated(space, angle * 1/6);
-    size_t count = 2;
-    Space spaces[] = {y_rotated_space, z_rotated_space};
+    size_t count = 1;
+    Space spaces[] = {y_rotated_space};
 
-    triangle[0] = transformeds(p1, spaces, count);
-    triangle[1] = transformeds(p2, spaces, count);
-    triangle[2] = transformeds(p3, spaces, count);
-    
+    triangle[0] = transformeds(p1, &y_rotated_space, count);
+    triangle[1] = transformeds(p2, &y_rotated_space, count);
+    triangle[2] = transformeds(p3, &y_rotated_space, count);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
     glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
+    
+    triangle[0] = transformeds(p1, &z_rotated_space, count);
+    triangle[1] = transformeds(p2, &z_rotated_space, count);
+    triangle[2] = transformeds(p3, &z_rotated_space, count);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
+
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
 
     glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 
     // Swap buffers
     glfwSwapBuffers(window);
@@ -94,7 +107,7 @@ int main(void)
   }
 
 	// Cleanup VBO
-	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(2, (GLuint *)&VBOs);
 	glDeleteVertexArrays(1, &VAO);
 
 	// Close OpenGL window and terminate GLFW
