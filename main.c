@@ -89,7 +89,7 @@ int main(void)
     double angle = step * i;
     Space x_rotated_space = x_rotated(space, angle);
     Space y_rotated_space = y_rotated(space, angle);
-    Space z_rotated_space = z_rotated(spac e, angle * 1/6);
+    Space z_rotated_space = z_rotated(space, angle * 1/6);
     Space spaces[] = {z_rotated_space, y_rotated_space};
     Space ispaces[] = {z_rotated_space};
     size_t icount = sizeof(ispaces) / sizeof(Space);
