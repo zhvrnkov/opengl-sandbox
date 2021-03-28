@@ -62,31 +62,35 @@ int main(void)
   size_t points_size = 9 * sizeof(float);
   Vertex triangle[3];
 
-  Vertex p1 = {1, 0, 0};
-  Vertex p2 = {0, 0.01, 0};
-  Vertex p3 = {0.01, 0, 0};
+  Vertex p1 = {0.5, 0, 0};
+  Vertex p2 = {0, 0.5, 0};
+  Vertex p3 = {-0.5, 0, 0};
+
+  Vertex c1 = {1, 0, 0};
+  Vertex c2 = {0, 1, 0};
+  Vertex c3 = {0, 0, 1};
 
   Space space = make_space();
 
-  double step = M_PI / 256;
+  double step = M_PI / 64;
   
   for(int i = 1; should_close; i++) {
     double angle = step * i;
     Space x_rotated_space = x_rotated(space, angle);
     Space y_rotated_space = y_rotated(space, angle);
     Space z_rotated_space = z_rotated(space, angle * 1/6);
-    size_t count = 1;
-    Space spaces[] = {y_rotated_space};
+    size_t count = 2;
+    Space spaces[] = {z_rotated_space, y_rotated_space};
 
-    triangle[0] = transformeds(p1, &y_rotated_space, count);
-    triangle[1] = transformeds(p2, &y_rotated_space, count);
-    triangle[2] = transformeds(p3, &y_rotated_space, count);
+    triangle[0] = transformeds(c1, &z_rotated_space, 1);
+    triangle[1] = transformeds(c2, &z_rotated_space, 1);
+    triangle[2] = transformeds(c3, &z_rotated_space, 1);
     glBindBuffer(GL_ARRAY_BUFFER, VBO2);
     glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
     
-    triangle[0] = transformeds(p1, &z_rotated_space, count);
-    triangle[1] = transformeds(p2, &z_rotated_space, count);
-    triangle[2] = transformeds(p3, &z_rotated_space, count);
+    triangle[0] = transformeds(p1, spaces, count);
+    triangle[1] = transformeds(p2, spaces, count);
+    triangle[2] = transformeds(p3, spaces, count);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
 
