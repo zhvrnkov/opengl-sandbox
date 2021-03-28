@@ -55,39 +55,44 @@ int main(void)
 	glGenBuffers(2, (GLuint *)&VBOs);
   GLuint VBO = VBOs[0];
   GLuint VBO2 = VBOs[1];
+  
+  GLuint EBO;
+  glGenBuffers(1, &EBO);
 
-  size_t count = 9 * sizeof(float);
-  float triangle[] = {
-     1, 0, 0,
-     0, 1, 0,
-    -1, 0, 0
-  };
-  float rtriangle[] = {
+  float vertices[] = {
      1,  0, 0,
+     0,  1, 0,
      0, -1, 0,
     -1,  0, 0
   };
+  
+  unsigned int indices[] = {
+    0, 1, 3,
+    0, 2, 3,
+  };
 
 	glBindVertexArray(VAO);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-  glBufferData(GL_ARRAY_BUFFER, count, triangle, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
 
-  glBindVertexArray(VAO2);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-  glBufferData(GL_ARRAY_BUFFER, count, rtriangle, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  /* glBindVertexArray(VAO2); */
+  /* glBindBuffer(GL_ARRAY_BUFFER, VBO2); */
+  /* glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0); */
+  /* glBufferData(GL_ARRAY_BUFFER, count, rtriangle, GL_STATIC_DRAW); */
+  /* glEnableVertexAttribArray(0); */
 
   for(int i = 1; should_close; i++) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3); 
-
-    glBindVertexArray(VAO2);
-    glDrawArrays(GL_TRIANGLES, 0, 3); 
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     /* glDisableVertexAttribArray(0); */
     /* glDisableVertexAttribArray(1); */
@@ -99,7 +104,7 @@ int main(void)
 
 	// Cleanup VBO
 	glDeleteBuffers(2, (GLuint *)&VBOs);
-	glDeleteVertexArrays(2, &VAOs);
+	glDeleteVertexArrays(2, (GLuint *)&VAOs);
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
