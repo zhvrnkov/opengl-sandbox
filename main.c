@@ -43,9 +43,10 @@ int main(void)
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	GLuint VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+  GLuint VAOs[2];
+	glGenVertexArrays(2, (GLuint *)&VAOs);
+	GLuint VAO = VAOs[0];
+  GLuint VAO2 = VAOs[1];
 
 	// Create and compile our GLSL program from the shaders
   GLuint program = reload_shaders();
@@ -54,52 +55,42 @@ int main(void)
 	glGenBuffers(2, (GLuint *)&VBOs);
   GLuint VBO = VBOs[0];
   GLuint VBO2 = VBOs[1];
+
+  size_t count = 9 * sizeof(float);
+  float triangle[] = {
+     1, 0, 0,
+     0, 1, 0,
+    -1, 0, 0
+  };
+  float rtriangle[] = {
+     1,  0, 0,
+     0, -1, 0,
+    -1,  0, 0
+  };
+
+	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glBufferData(GL_ARRAY_BUFFER, count, triangle, GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+
+  glBindVertexArray(VAO2);
   glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glBufferData(GL_ARRAY_BUFFER, count, rtriangle, GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
 
-  size_t points_size = 9 * sizeof(float);
-  Vertex triangle[3];
-
-  Vertex p1 = {1, 0, 0};
-  Vertex p2 = {0, 0.01, 0};
-  Vertex p3 = {0.01, 0, 0};
-
-  Space space = make_space();
-
-  double step = M_PI / 256;
-  
   for(int i = 1; should_close; i++) {
-    double angle = step * i;
-    Space x_rotated_space = x_rotated(space, angle);
-    Space y_rotated_space = y_rotated(space, angle);
-    Space z_rotated_space = z_rotated(space, angle * 1/6);
-    size_t count = 1;
-    Space spaces[] = {y_rotated_space};
-
-    triangle[0] = transformeds(p1, &y_rotated_space, count);
-    triangle[1] = transformeds(p2, &y_rotated_space, count);
-    triangle[2] = transformeds(p3, &y_rotated_space, count);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-    glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
-    
-    triangle[0] = transformeds(p1, &z_rotated_space, count);
-    triangle[1] = transformeds(p2, &z_rotated_space, count);
-    triangle[2] = transformeds(p3, &z_rotated_space, count);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, points_size, (float *)triangle, GL_STATIC_DRAW);
-
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3); 
 
-    // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
+    glBindVertexArray(VAO2);
+    glDrawArrays(GL_TRIANGLES, 0, 3); 
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    /* glDisableVertexAttribArray(0); */
+    /* glDisableVertexAttribArray(1); */
 
     // Swap buffers
     glfwSwapBuffers(window);
@@ -108,7 +99,7 @@ int main(void)
 
 	// Cleanup VBO
 	glDeleteBuffers(2, (GLuint *)&VBOs);
-	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(2, &VAOs);
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
