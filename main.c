@@ -47,26 +47,40 @@ int main(void)
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
+  size_t sof = sizeof(float);
+
   GLuint vbo;
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sof, (void *)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 7 * sof, (void *)(3 * sof));
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 7 * sof, (void *)(6 * sof));
+  glEnableVertexAttribArray(2);
+
+  Space space = make_space();
+  int vertexSpaceLocation = glGetUniformLocation(program, "space");
+  glUniformMatrix3fv(vertexSpaceLocation, 9, GL_FALSE, (float *)&space);
 
   float triangle[] = {
-    0, 1, 0,
-    1, 0, 0,
-    -1, 0, 0
+     0, 1, 0, 1, 0, 0, 0,
+     1, 0, 0, 0, 1, 0, 0,
+    -1, 0, 0, 0, 0, 1, 0
   };
 
-  glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
-  
-  while(should_close) {
+  float step = M_PI / 256;
+
+  for (int i = 0; should_close; i++) {
+    glClear(GL_COLOR_BUFFER_BIT);
+    float angle = step * i;
+    triangle[6] = triangle[13] = triangle[20] = angle;
+    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle), triangle, GL_STATIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glfwSwapBuffers(window);
-    glfwPollEvents();
+    glfwPollEvents();    
   }
-
+  
 	glfwTerminate();
 
 	return 0;

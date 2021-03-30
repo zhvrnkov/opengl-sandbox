@@ -1,13 +1,22 @@
 #version 330 core
 
-// Input vertex data, different for all executions of this shader.
-layout(location = 0) in vec3 vertex1;
-// layout(location = 1) in vec3 vertex2;
+#define PI 3.1415926538
+
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 color;
+layout(location = 2) in float angle;
+
+uniform mat3 space;
+
+out vec3 frag_color;
 
 void main(){
-
-  gl_Position.xyz = vertex1;
-  gl_Position.w = 1.0;
-
+  float shangle = angle + PI / 2;
+  mat3 space = mat3(1);
+  mat3 rspace = mat3(cos(angle), cos(shangle), 0,
+                     sin(angle), sin(shangle), 0,
+                     0,          0,            1);
+  gl_Position = vec4(position * (space * rspace), 1.0);
+  frag_color = color * rspace;
 }
 
