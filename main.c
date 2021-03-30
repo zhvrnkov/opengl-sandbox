@@ -1,4 +1,3 @@
-// Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -8,27 +7,25 @@
 #include <errno.h>
 #include <stdarg.h>
 
-// Include GLEW
 #include <GL/glew.h>
 
-// Include GLFW
 #include <GLFW/glfw3.h>
-GLFWwindow* window;
 
 #include "common/linear_algebra.h"
 #include "shaders/setup.h"
 
 #define should_close glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0
 
-int main(void)
+GLFWwindow* window;
+
+int main(void) 
 {
-	// Initialise GLFW
   glfwInit();
 
 	glfwWindowHint(GLFW_SAMPLES, 256);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	window = glfwCreateWindow(1080, 1080,"Tutorial 02 - Red triangle", NULL, NULL);
@@ -59,9 +56,13 @@ int main(void)
   glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 7 * sof, (void *)(6 * sof));
   glEnableVertexAttribArray(2);
 
-  Space space = make_space();
+  float space[] = {
+    1, 0, 0,
+    0, 2, 0,
+    0, 0, 1
+  };
   int vertexSpaceLocation = glGetUniformLocation(program, "space");
-  glUniformMatrix3fv(vertexSpaceLocation, 9, GL_FALSE, (float *)&space);
+  glUniformMatrix3fv(vertexSpaceLocation, 1, GL_FALSE, (float *)space);
 
   float triangle[] = {
      0, 1, 0, 1, 0, 0, 0,
@@ -85,4 +86,3 @@ int main(void)
 
 	return 0;
 }
-

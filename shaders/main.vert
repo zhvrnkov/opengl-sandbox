@@ -12,11 +12,9 @@ out vec3 frag_color;
 
 void main(){
   float shangle = angle + PI / 2;
-  mat3 space = mat3(1);
-  mat3 rspace = mat3(cos(angle), cos(shangle), 0,
-                     sin(angle), sin(shangle), 0,
-                     0,          0,            1);
+  mat3 rspace = mat3(vec3(cos(angle), sin(angle), 0),
+                     vec3(cos(shangle), sin(shangle), 0),
+                     0, 0, 1);
   gl_Position = vec4(position * (space * rspace), 1.0);
   frag_color = color * rspace;
 }
-
