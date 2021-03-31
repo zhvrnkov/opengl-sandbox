@@ -37,6 +37,15 @@ Vertex multiply(Vertex vector, float scalar) {
   return output;
 }
 
+Space mmultiply(Space space, float scalar) {
+  Space output = space;
+  float *t = (float *)&output;
+  for (int i = 0; i < sizeof(Space) / sizeof(float); i++) {
+    t[i] *= scalar;
+  }
+  return output;
+}
+
 Vertex transformed(Vertex vector, Space space) {
   Vertex ts[3];
   ts[0] = multiply(space.x, vector.x);
@@ -67,6 +76,23 @@ Space make_space() {
   space.z.x = 0;
   space.z.y = 0;
   space.z.z = 1;
+
+  return space;
+}
+
+Space make_rospace() {
+  Space space;
+  space.x.x = -0.5;
+  space.x.y = 0;
+  space.x.z = 0;
+
+  space.y.x = 0;
+  space.y.y = -0.5;
+  space.y.z = 0;
+
+  space.z.x = 0;
+  space.z.y = 0;
+  space.z.z = -0.5;
 
   return space;
 }
@@ -117,4 +143,22 @@ Space y_rotated(Space space, double angle) {
   output.z.z = sin(z_angle);
 
   return output;  
+}
+
+Triangle make_even_triangle(float scale) {
+  Space space = mmultiply(z_rotated(make_space(), 2 * M_PI / 3), scale);
+
+  Vertex point1;
+  point1.x = 0;
+  point1.y = 1;
+  point1.z = 0;
+
+  Vertex point2 = transformed(point1, space);
+  Vertex point3 = transformed(point2, space);
+  Triangle tr = {
+    .a = point1,
+    .b = point2,
+    .c = point3
+  };
+  return tr;
 }

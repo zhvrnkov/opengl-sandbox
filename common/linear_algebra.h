@@ -14,6 +14,10 @@ typedef struct {
   Vertex x, y, z;
 } Space;
 
+typedef struct {
+  Vertex a, b, c;
+} Triangle;
+
 #define print_vertex(V) printf("x: %f, y: %f, z: %f\n", V.x, V.y, V.z)
 
 void set_matrix(float **vectors, int vectors_count, float *output);
@@ -23,8 +27,11 @@ Vertex multiply(Vertex vector, float scalar);
 Vertex transformed(Vertex vector, Space space);
 Vertex transformeds(Vertex vector, Space *spaces, size_t space_count);
 Space make_space();
+Space make_rospace();
 Space z_rotated(Space space, double angle);
 Space y_rotated(Space space, double angle);
 Space x_rotated(Space space, double angle);
+Space mmultiply(Space, float);
+Triangle make_even_triangle(float scale);
 
 #endif
