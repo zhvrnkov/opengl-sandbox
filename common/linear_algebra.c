@@ -63,19 +63,19 @@ Vertex transformeds(Vertex vector, Space *spaces, size_t space_count) {
   return output;
 }
 
-Space make_space() {
+Space make_space(float scale) {
   Space space;
-  space.x.x = 1;
+  space.x.x = scale;
   space.x.y = 0;
   space.x.z = 0;
 
   space.y.x = 0;
-  space.y.y = 1;
+  space.y.y = scale;
   space.y.z = 0;
 
   space.z.x = 0;
   space.z.y = 0;
-  space.z.z = 1;
+  space.z.z = scale;
 
   return space;
 }
@@ -146,7 +146,7 @@ Space y_rotated(Space space, double angle) {
 }
 
 Triangle make_even_triangle(float scale) {
-  Space space = mmultiply(z_rotated(make_space(), 2 * M_PI / 3), scale);
+  Space space = mmultiply(z_rotated(make_space(1), 2 * M_PI / 3), scale);
 
   Vertex point1;
   point1.x = 0;
@@ -157,8 +157,48 @@ Triangle make_even_triangle(float scale) {
   Vertex point3 = transformed(point2, space);
   Triangle tr = {
     .a = point1,
-    .b = point2,
-    .c = point3
+    .b = point3,
+    .c = point2
   };
   return tr;
 }
+
+Vertex vvmultiply(Vertex vec1, Vertex vec2) {
+  Vertex output;
+  output.x = vec1.x * vec2.x;
+  output.y = vec1.y * vec2.y;
+  output.z = vec1.z * vec2.z;
+  return output;
+}
+
+float fvvmultiply(Vertex vec1, Vertex vec2) {
+  Vertex t = vvmultiply(vec1, vec2);
+  return t.x + t.y + t.z;
+}
+
+Vertex mvmultiply(Vertex vector, Space space) {
+  Vertex vspace[3];
+  vspace[0] = space.x;
+  vspace[1] = space.y;
+  vspace[2] = space.z;
+
+  float t[3];
+  for (int i = 0; i < 3; i++) {
+    t[i] = fvvmultiply(vector, vspace[i]);
+  }
+  Vertex output = {
+    .x = t[0],
+    .y = t[1],
+    .z = t[2]
+  };
+  return output;
+}
+
+Triangle shiftx(Triangle tr, float s) {
+  return tr;
+}
+
+Triangle shifty(Triangle tr, float s) {
+  return tr;
+}
+
