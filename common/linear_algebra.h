@@ -20,6 +20,7 @@ typedef struct {
 
 #define print_vertex(V) printf("x: %f, y: %f, z: %f\n", V.x, V.y, V.z)
 #define print_tr(T) print_vertex(T.a); print_vertex(T.b); print_vertex(T.c); printf("\n");
+#define print_sp(S) print_vertex(S.x); print_vertex(S.y); print_vertex(S.z); printf("\n");
 
 void set_matrix(float **vectors, int vectors_count, float *output);
 float *make_matrix(float **vectors, int vectors_count);
