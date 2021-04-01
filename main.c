@@ -43,12 +43,13 @@ Triangle triangle(Triangle source, Space *space) {
 }
 
 
-void vertices(Triangle source, Space *space, int depth, void (*f)(Triangle)) {
+void vertices(Triangle source, Space *space, int depth, Triangle *output, int *index) {
   if (depth == 0) {
       return;
   }
   Triangle tr = triangle(source, space);
-  f(tr);
+  output[*index] = tr;
+  (*index)++;
   
   Triangle first = {
     .a = source.a,
@@ -68,18 +69,18 @@ void vertices(Triangle source, Space *space, int depth, void (*f)(Triangle)) {
     .c = source.c
   };
 
-  vertices(first, space, depth - 1, f);
-  vertices(second, space, depth - 1, f);
-  vertices(third, space, depth - 1, f);
+  vertices(first, space, depth - 1, output, index);
+  vertices(second, space, depth - 1, output, index);
+  vertices(third, space, depth - 1, output, index);
 }
 
-#define DEPTH 4
-Triangle ts[13];
-
-void printtr(Triangle t) {
-  static int x = 0;
-  ts[x] = t;
-  x++;
+int counter(int depth) {
+  if (depth == 0) {
+    return 0;
+  }
+  else {
+    return pow(3, depth - 1) + counter(depth - 1);
+  }
 }
 
 int main(void) 
@@ -119,13 +120,16 @@ int main(void)
 
   float step = M_PI / 256;
   
-  int depth = 3;
-  Triangle output[1 + 3 + 9];
-  size_t triangles_count = sizeof(output) / sizeof(Triangle);
+  int depth = 10;
+  size_t output_size = counter(depth) * sizeof(Triangle);
+  Triangle *output;
+  output = malloc(output_size);
+  size_t triangles_count = output_size / sizeof(Triangle);
 
   Space rospace = mmultiply(z_rotated(make_space(1), M_PI), 0.5);
   Triangle src = make_even_triangle(1);
-  vertices(src, &rospace, depth, printtr);
+  int index = 0;
+  vertices(src, &rospace, depth, output, &index);
 
   Vertex v0 = { -0.433013,  -0.125000,  0.000000 };
   Vertex v1 = { -0.541266,  0.062500,  0.000000 };
@@ -156,7 +160,7 @@ int main(void)
   for (int i = 0; should_close; i++) {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle) * triangles_count, (float *)ts, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle) * triangles_count, (float *)output, GL_STATIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, triangles_count * 3);
     glfwSwapBuffers(window);
     glfwPollEvents();    
