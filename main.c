@@ -95,13 +95,11 @@ int main(void)
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
   GLuint program = reload_shaders();
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   GLuint vao;
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
-
-  size_t sof = sizeof(float);
 
   GLuint vbo;
   glGenBuffers(1, &vbo);
@@ -109,9 +107,10 @@ int main(void)
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
   glEnableVertexAttribArray(0);
 
-  float step = M_PI / 256;
+  int angleLocation = glGetUniformLocation(program, "angle");
+  float step = M_PI / 128;
   
-  int depth = 10;
+  int depth = 5;
   size_t tc = counter(depth);
   size_t output_size = tc * sizeof(Triangle);
   Triangle *output;
@@ -121,11 +120,16 @@ int main(void)
   Triangle src = make_even_triangle(1);
   int index = 0;
   vertices(src, &rospace, depth, output, &index);
+  glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
+
+  Vertex c1 = {1, 0, 0};
+  Vertex c2 = {0, 1, 0};
+  Vertex c3 = {0, 0, 1};
 
   for (int i = 0; should_close; i++) {
+    glUniform1f(angleLocation, step * i);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
     glDrawArrays(GL_TRIANGLES, 0, tc * 3);
     glfwSwapBuffers(window);
     glfwPollEvents();    
