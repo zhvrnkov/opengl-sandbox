@@ -126,21 +126,13 @@ int main(void)
 
   glUniformMatrix3x2fv(textureLocation, 1, GL_FALSE, texture_coords);
 
-  float step = M_PI / 128;
+  float step = M_PI / 64;
  
-  int depth = 5;
-  size_t tc = counter(depth);
-  size_t output_size = tc * sizeof(Triangle);
   Triangle *output;
   output = malloc(counter(15) * sizeof(Triangle));
 
   Triangle src = make_even_triangle(1);
   Space rospace = mmultiply(z_rotated(make_space(1), M_PI), 0.5);
-  int index = 0;
-  vertices(src, &rospace, depth, output, &index);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
-  glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
   glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coords), texture_coords, GL_STATIC_DRAW);
@@ -157,7 +149,30 @@ int main(void)
   /* Vertex c2 = {0, 1, 0}; */
   /* Vertex c3 = {0, 0, 1}; */
 
+  int depth = 1;
+  size_t tc = counter(depth);
+  int direction = 1;
+  int max_depth = 10;
+
   for (int i = 0; should_close; i++) {
+    if (i % 5 == 0) {
+      int new_depth = (depth + 1) % 6;
+      if (depth >= max_depth) {
+        direction = -1;
+      }
+      else if (depth <= 1) {
+        direction = 1;
+      }
+      depth = (depth + direction);
+      tc = counter(depth);
+      size_t output_size = tc * sizeof(Triangle);
+
+      int index = 0;
+      vertices(src, &rospace, depth, output, &index);
+
+      glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
+      glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
+    }
     glUniform1f(angleLocation, step * i);
     glClear(GL_COLOR_BUFFER_BIT);
 
