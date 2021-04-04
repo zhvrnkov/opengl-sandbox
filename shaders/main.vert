@@ -3,10 +3,9 @@
 #define PI 3.1415926538
 
 layout(location = 0) in vec3 position;
-// layout(location = 1) in vec2 a_tex_coord;
+layout(location = 1) in vec3 origin;
 
 uniform float angle;
-uniform mat3x2 tex_coord;
 
 out vec2 a_tex_coord;
 out vec3 a_color;
@@ -17,8 +16,7 @@ void main(){
   mat3 rspace = mat3(cos(angle), cos(shangle), 0,
                      sin(angle), sin(shangle), 0,
                      0,          0,            1);
-  gl_Position = vec4(position, 1.0);
-  a_tex_coord = tex_coord[gl_VertexID % 3];
+  gl_Position = vec4((position * rspace) + origin, 1.0);
 
   vec3 tcolor = vec3(1, 1, 1);
   tcolor[gl_VertexID % 3] = sin(angle + ((2 * PI) / 3) * (gl_VertexID % 3));

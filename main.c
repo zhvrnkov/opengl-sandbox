@@ -36,13 +36,20 @@ Triangle triangle(Triangle source, Space *space) {
   return output;
 }
 
+Space half_space;
 
-void vertices(Triangle source, Space *space, int depth, Triangle *output, int *index) {
+void vertices(Triangle source, 
+              Space *space, 
+              int depth, 
+              Triangle *output, 
+              Vertex *centers, 
+              int *index) {
   if (depth == 0) {
       return;
   }
-  Triangle tr = triangle(source, space);
+  Triangle tr = triangle_multiply(source, half_space);
   output[*index] = tr;
+  centers[*index] = triangle_center(source);
   (*index)++;
   
   Triangle first = {
@@ -63,9 +70,9 @@ void vertices(Triangle source, Space *space, int depth, Triangle *output, int *i
     .c = source.c
   };
 
-  vertices(first, space, depth - 1, output, index);
-  vertices(second, space, depth - 1, output, index);
-  vertices(third, space, depth - 1, output, index);
+  vertices(first, space, depth - 1, output, centers, index);
+  vertices(second, space, depth - 1, output, centers, index);
+  vertices(third, space, depth - 1, output, centers, index);
 }
 
 int counter(int depth) {
@@ -79,6 +86,7 @@ int counter(int depth) {
 
 int main(void) 
 {
+  half_space = mmultiply(z_rotated(make_space(1), M_PI), 0.5);
   int width, height, nrChannels;
   unsigned char *data = stbi_load("wall.jpg", &width, &height, &nrChannels, 0); 
 
@@ -111,31 +119,21 @@ int main(void)
   glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
   glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
 
   int angleLocation = glGetUniformLocation(program, "angle");
-  int textureLocation = glGetUniformLocation(program, "tex_coord");
-
-  float texture_coords[] = {
-    0.5, 1,
-    1, 0,
-    0, 0
-  };
-
-  glUniformMatrix3x2fv(textureLocation, 1, GL_FALSE, texture_coords);
 
   float step = M_PI / 64;
  
   Triangle *output;
   output = malloc(counter(15) * sizeof(Triangle));
+  Vertex *centers;
+  centers = malloc(counter(15) * sizeof(Vertex));
 
   Triangle src = make_even_triangle(1);
   Space rospace = mmultiply(z_rotated(make_space(1), M_PI), 0.5);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coords), texture_coords, GL_STATIC_DRAW);
 
   unsigned int texture;
   glGenTextures(1, &texture);
@@ -154,25 +152,60 @@ int main(void)
   int direction = 1;
   int max_depth = 10;
 
+  Triangle test;
+  Vertex a = {0.7, 1, 0};
+  Vertex b = {0.95 , 0.5, 0};
+  Vertex c = {0.45, 0.5, 0};
+  test.a = a;
+  test.b = b;
+  test.c = c;
+
+  Vertex center[3];
+  Vertex cen = triangle_center(test);
+  center[0] = cen;
+  center[1] = cen;
+  center[2] = cen;
+
+  Vertex na = {0, 0.1, 0};
+  Vertex nb = {0.1, -0.1, 0};
+  Vertex nc = {-0.1, -0.1, 0};
+  test.a = na;
+  test.b = nb;
+  test.c = nc;
+
+//  print_vertex(center);
+
+
   for (int i = 0; should_close; i++) {
-    if (i % 5 == 0) {
-      int new_depth = (depth + 1) % 6;
-      if (depth >= max_depth) {
-        direction = -1;
-      }
-      else if (depth <= 1) {
-        direction = 1;
-      }
-      depth = (depth + direction);
-      tc = counter(depth);
-      size_t output_size = tc * sizeof(Triangle);
+    /* if (i % 5 == 0) { */
+    /*   int new_depth = (depth + 1) % 6; */
+    /*   if (depth >= max_depth) { */
+    /*     direction = -1; */
+    /*   } */
+    /*   else if (depth <= 1) { */
+    /*     direction = 1; */
+    /*   } */
+    /*   depth = (depth + direction); */
+    /*   tc = counter(depth); */
+    /*   size_t output_size = tc * sizeof(Triangle); */
+    /*   size_t centers_size = tc * sizeof(Vertex); */
 
-      int index = 0;
-      vertices(src, &rospace, depth, output, &index);
+    /*   int index = 0; */
+    /*   vertices(src, &rospace, depth, output, centers, &index); */
 
-      glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
-      glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
-    }
+    /*   glBindBuffer(GL_ARRAY_BUFFER, vbos[0]); */
+    /*   glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW); */
+
+    /*   glBindBuffer(GL_ARRAY_BUFFER, vbos[1]); */
+    /*   glBufferData(GL_ARRAY_BUFFER, centers_size, (float *)centers, GL_STATIC_DRAW); */
+    /* } */
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle), (float *)&test, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 3, (float *)&center, GL_STATIC_DRAW);
+
     glUniform1f(angleLocation, step * i);
     glClear(GL_COLOR_BUFFER_BIT);
 

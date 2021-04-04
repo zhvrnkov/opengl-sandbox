@@ -202,3 +202,18 @@ Triangle shifty(Triangle tr, float s) {
   return tr;
 }
 
+Vertex triangle_center(Triangle tr) {
+  Vertex output;
+  output.y = tr.c.y + (tr.a.y - tr.c.y) / 2;
+  output.x = tr.c.x - (tr.c.x - tr.b.x) / 2;
+  output.z = tr.a.z;
+  return output;
+}
+
+Triangle triangle_multiply(Triangle tr, Space space) {
+  Triangle output;
+  output.a = mvmultiply(tr.a, space);
+  output.b = mvmultiply(tr.b, space);
+  output.c = mvmultiply(tr.c, space);
+  return output;
+}
