@@ -163,6 +163,24 @@ Triangle make_even_triangle(float scale) {
   return tr;
 }
 
+Triangle make_evenr_triangle(float scale) {
+  Space space = mmultiply(z_rotated(make_space(1), 2 * M_PI / 3), scale);
+
+  Vertex pointA;
+  pointA.x = 0;
+  pointA.y = -1;
+  pointA.z = 0;
+
+  Vertex pointB = transformed(pointA, space);
+  Vertex pointC = transformed(pointB, space);
+  Triangle tr = {
+    .a = pointA,
+    .b = pointB,
+    .c = pointC
+  };
+  return tr;
+}
+
 Vertex vvmultiply(Vertex vec1, Vertex vec2) {
   Vertex output;
   output.x = vec1.x * vec2.x;

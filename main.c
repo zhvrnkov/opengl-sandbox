@@ -39,40 +39,49 @@ Triangle triangle(Triangle source, Space *space) {
 Space half_space;
 
 void vertices(Triangle source, 
-              Space *space, 
+              Vertex center,
               int depth, 
               Triangle *output, 
-              Vertex *centers, 
+              Triangle *centers, 
               int *index) {
   if (depth == 0) {
       return;
   }
-  Triangle tr = triangle_multiply(source, half_space);
+  Space space = make_space(0.5);
+  Triangle tr = triangle_multiply(source, space);
   output[*index] = tr;
-  centers[*index] = triangle_center(source);
+  centers[*index].a = center;
+  centers[*index].b = center;
+  centers[*index].c = center;
   (*index)++;
   
-  Triangle first = {
-    .a = source.a,
-    .b = tr.c,
-    .c = tr.b
+  Triangle next = triangle_multiply(tr, space);
+
+  float tr_x = fabs(tr.b.x - tr.c.x);
+  float tr_y = fabs(tr.a.y - tr.b.y);
+
+  float next_x = fabs(next.b.x - next.c.x);
+  float next_y = fabs(next.a.y - next.b.y);
+
+  Vertex first = {
+    .x = center.x,
+    .y = center.y + tr_y / 2 + next_y / 3,
+    .z = center.z
   };
-  
-  Triangle second = {
-    .a = tr.c,
-    .b = source.b,
-    .c = tr.a
+  Vertex second = {
+    .x = center.x + tr_x / 2,
+    .y = center.y - tr_y / 2 + next_y / 3,
+    .z = center.z
+  };
+  Vertex third = {
+    .x = center.x - tr_x / 2,
+    .y = center.y - tr_y / 2 + next_y / 3,
+    .z = center.z
   };
 
-  Triangle third = {
-    .a = tr.b,
-    .b = tr.a,
-    .c = source.c
-  };
-
-  vertices(first, space, depth - 1, output, centers, index);
-  vertices(second, space, depth - 1, output, centers, index);
-  vertices(third, space, depth - 1, output, centers, index);
+  vertices(tr, first, depth - 1, output, centers, index);
+  vertices(tr, second, depth - 1, output, centers, index);
+  vertices(tr, third, depth - 1, output, centers, index);
 }
 
 int counter(int depth) {
@@ -87,9 +96,6 @@ int counter(int depth) {
 int main(void) 
 {
   half_space = mmultiply(z_rotated(make_space(1), M_PI), 0.5);
-  int width, height, nrChannels;
-  unsigned char *data = stbi_load("wall.jpg", &width, &height, &nrChannels, 0); 
-
   glfwInit();
 
 	glfwWindowHint(GLFW_SAMPLES, 256);
@@ -129,82 +135,47 @@ int main(void)
  
   Triangle *output;
   output = malloc(counter(15) * sizeof(Triangle));
-  Vertex *centers;
-  centers = malloc(counter(15) * sizeof(Vertex));
+  Triangle *centers;
+  centers = malloc(counter(15) * sizeof(Triangle));
 
-  Triangle src = make_even_triangle(1);
-  Space rospace = mmultiply(z_rotated(make_space(1), M_PI), 0.5);
-
-  unsigned int texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-  glGenerateMipmap(GL_TEXTURE_2D);
-
-  stbi_image_free(data);
-
-  /* Vertex c1 = {1, 0, 0}; */
-  /* Vertex c2 = {0, 1, 0}; */
-  /* Vertex c3 = {0, 0, 1}; */
+  Triangle src = make_evenr_triangle(1);
+  Space space_123 = make_space(0.5);
+  Triangle tr123 = triangle_multiply(src, space_123);
+  // print_vertex(triangle_center(src));
+  Vertex zero_origin = {
+    .x = 0,
+    .y = 0,
+    .z = 0
+  };
 
   int depth = 1;
   size_t tc = counter(depth);
   int direction = 1;
   int max_depth = 10;
 
-  Triangle test;
-  Vertex a = {0.7, 1, 0};
-  Vertex b = {0.95 , 0.5, 0};
-  Vertex c = {0.45, 0.5, 0};
-  test.a = a;
-  test.b = b;
-  test.c = c;
-
-  Vertex center[3];
-  Vertex cen = triangle_center(test);
-  center[0] = cen;
-  center[1] = cen;
-  center[2] = cen;
-
-  Vertex na = {0, 0.1, 0};
-  Vertex nb = {0.1, -0.1, 0};
-  Vertex nc = {-0.1, -0.1, 0};
-  test.a = na;
-  test.b = nb;
-  test.c = nc;
-
-//  print_vertex(center);
-
-
   for (int i = 0; should_close; i++) {
-    /* if (i % 5 == 0) { */
-    /*   int new_depth = (depth + 1) % 6; */
-    /*   if (depth >= max_depth) { */
-    /*     direction = -1; */
-    /*   } */
-    /*   else if (depth <= 1) { */
-    /*     direction = 1; */
-    /*   } */
-    /*   depth = (depth + direction); */
-    /*   tc = counter(depth); */
-    /*   size_t output_size = tc * sizeof(Triangle); */
-    /*   size_t centers_size = tc * sizeof(Vertex); */
+    if (i % 100 == 0) {
+      int new_depth = (depth + 1) % 6;
+      if (depth >= max_depth) {
+        direction = -1;
+      }
+      else if (depth <= 1) {
+        direction = 1;
+      }
+      depth = (depth + direction);
+      tc = counter(depth);
+      size_t output_size = tc * sizeof(Triangle);
+      size_t centers_size = tc * sizeof(Triangle);
 
-    /*   int index = 0; */
-    /*   vertices(src, &rospace, depth, output, centers, &index); */
+      int index = 0;
+      vertices(src, zero_origin/* triangle_center(tr123) */, depth, output, centers, &index);
 
-    /*   glBindBuffer(GL_ARRAY_BUFFER, vbos[0]); */
-    /*   glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW); */
+      glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
+      glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
 
-    /*   glBindBuffer(GL_ARRAY_BUFFER, vbos[1]); */
-    /*   glBufferData(GL_ARRAY_BUFFER, centers_size, (float *)centers, GL_STATIC_DRAW); */
-    /* } */
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Triangle), (float *)&test, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 3, (float *)&center, GL_STATIC_DRAW);
+      glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
+      glBufferData(GL_ARRAY_BUFFER, centers_size, (float *)centers, GL_STATIC_DRAW);
+    }
 
     glUniform1f(angleLocation, step * i);
     glClear(GL_COLOR_BUFFER_BIT);

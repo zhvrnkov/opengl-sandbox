@@ -16,7 +16,7 @@ void main(){
   mat3 rspace = mat3(cos(angle), cos(shangle), 0,
                      sin(angle), sin(shangle), 0,
                      0,          0,            1);
-  gl_Position = vec4((position * rspace) + origin, 1.0);
+  gl_Position = vec4(position * rspace + origin, 1.0);
 
   vec3 tcolor = vec3(1, 1, 1);
   tcolor[gl_VertexID % 3] = sin(angle + ((2 * PI) / 3) * (gl_VertexID % 3));

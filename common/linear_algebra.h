@@ -35,6 +35,7 @@ Space y_rotated(Space space, double angle);
 Space x_rotated(Space space, double angle);
 Space mmultiply(Space, float);
 Triangle make_even_triangle(float scale);
+Triangle make_evenr_triangle(float scale);
 Vertex mvmultiply(Vertex vector, Space space);
 Triangle shiftx(Triangle, float);
 Triangle shifty(Triangle, float);
