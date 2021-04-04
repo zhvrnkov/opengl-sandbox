@@ -16,5 +16,5 @@ void main() {
   // float angleG = angle + shift;
   // float angleB = angleG + shift;
 	// vec3 tcolor = vec3(sin(angleR), sin(angleG), sin(angleB));
-  color = texture(ourTexture, a_tex_coord) * vec4(a_color, 1.0);
+  color = vec4(a_color, 1.0);
 }

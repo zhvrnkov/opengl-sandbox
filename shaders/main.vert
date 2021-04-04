@@ -17,7 +17,7 @@ void main(){
   mat3 rspace = mat3(cos(angle), cos(shangle), 0,
                      sin(angle), sin(shangle), 0,
                      0,          0,            1);
-  gl_Position = vec4(position * rspace, 1.0);
+  gl_Position = vec4(position, 1.0);
   a_tex_coord = tex_coord[gl_VertexID % 3];
 
   vec3 tcolor = vec3(1, 1, 1);
