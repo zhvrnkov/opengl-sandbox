@@ -14,6 +14,9 @@
 #include "common/linear_algebra.h"
 #include "shaders/setup.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #define should_close glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0
 
 GLFWwindow* window;
@@ -76,6 +79,9 @@ int counter(int depth) {
 
 int main(void) 
 {
+  int width, height, nrChannels;
+  unsigned char *data = stbi_load("wall.jpg", &width, &height, &nrChannels, 0); 
+
   glfwInit();
 
 	glfwWindowHint(GLFW_SAMPLES, 256);
@@ -95,36 +101,63 @@ int main(void)
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
   GLuint program = reload_shaders();
-//  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   GLuint vao;
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  GLuint vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  GLuint vbos[2];
+  glGenBuffers(2, vbos);
+  glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
   glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
 
   int angleLocation = glGetUniformLocation(program, "angle");
   float step = M_PI / 128;
-  
+ 
   int depth = 5;
-  size_t tc = counter(depth);
+  size_t tc = 1; //counter(depth);
   size_t output_size = tc * sizeof(Triangle);
   Triangle *output;
   output = malloc(counter(15) * sizeof(Triangle));
 
-  Space rospace = mmultiply(z_rotated(make_space(1), M_PI), 0.5);
   Triangle src = make_even_triangle(1);
-  int index = 0;
-  vertices(src, &rospace, depth, output, &index);
+  output[0] = src;
+
+  float texture_coords[] = {
+    0.5, 1,
+    1, 0,
+    0, 0
+  };
+
+  glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
   glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
 
-  Vertex c1 = {1, 0, 0};
-  Vertex c2 = {0, 1, 0};
-  Vertex c3 = {0, 0, 1};
+  glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coords), texture_coords, GL_STATIC_DRAW);
+
+  unsigned int texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  stbi_image_free(data);
+
+  /* Space rospace = mmultiply(z_rotated(make_space(1), M_PI), 0.5); */
+  /* int index = 0; */
+  /* vertices(src, &rospace, depth, output, &index); */
+
+  /* Vertex c1 = {1, 0, 0}; */
+  /* Vertex c2 = {0, 1, 0}; */
+  /* Vertex c3 = {0, 0, 1}; */
 
   for (int i = 0; should_close; i++) {
     glUniform1f(angleLocation, step * i);
