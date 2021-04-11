@@ -154,13 +154,15 @@ int main(void)
   int max_depth = 10;
 
   for (int i = 0; should_close; i++) {
-    if (i % 100 == 0) {
-      int new_depth = (depth + 1) % 6;
+    double value = sin(step * i);
+    double zero = 0.0001;
+    if (value > -zero && value < zero) {
+      int direction_step = 1;//sin(step * i) == 0 ? 1 : 0;//(int)floor(sin(step * i));
       if (depth >= max_depth) {
-        direction = -1;
+        direction = -direction_step;
       }
       else if (depth <= 1) {
-        direction = 1;
+        direction = direction_step;
       }
       depth = (depth + direction);
       tc = counter(depth);
@@ -168,7 +170,7 @@ int main(void)
       size_t centers_size = tc * sizeof(Triangle);
 
       int index = 0;
-      vertices(src, zero_origin/* triangle_center(tr123) */, depth, output, centers, &index);
+      vertices(src, zero_origin, depth, output, centers, &index);
 
       glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
       glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
