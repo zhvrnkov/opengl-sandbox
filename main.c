@@ -22,6 +22,45 @@
 
 GLFWwindow* window;
 
+static const GLfloat cube[][3] = {
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f,-1.0f, 1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {-1.0f,-1.0f, 1.0f},
+    {-1.0f,-1.0f,-1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {-1.0f,-1.0f, 1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {1.0f,-1.0f,-1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f,-1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f,-1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {-1.0f, 1.0f,-1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {1.0f, 1.0f, 1.0f},
+    {-1.0f, 1.0f, 1.0f},
+    {1.0f,-1.0f, 1.0f}
+};
+
 int main(void) 
 {
   glfwInit();
@@ -48,68 +87,67 @@ int main(void)
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  GLuint vbos[2];
-  glGenBuffers(2, vbos);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
+  size_t stride = sizeof(float) * 3 + sizeof(int);
+  GLuint vbo;
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
   glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
 
   int angleLocation = glGetUniformLocation(program, "angle");
 
   float step = M_PI / 64;
- 
-  Triangle *output;
-  output = malloc(counter(15) * sizeof(Triangle));
-  Triangle *centers;
-  centers = malloc(counter(15) * sizeof(Triangle));
-
-  Triangle src = make_evenr_triangle(1);
-  Space space_123 = make_space(0.5);
-  Triangle tr123 = triangle_multiply(src, space_123);
-  Vertex zero_origin = {
-    .x = 0,
-    .y = 0,
-    .z = 0
+  float sides[][3] = {
+    {-1.0, 1.0, 1.0},
+    {1.0, 1.0, 1.0},
+    {1.0, -1.0, 1.0},
+    {-1.0, -1.0, 1.0},
+    {-1.0, 1.0, -1.0},
+    {1.0, 1.0, -1.0},
+    {1.0, -1.0, -1.0},
+    {-1.0, -1.0, -1.0},
+  };
+  
+  uint indices[] = {
+    0, 1, 2,
+    0, 3, 2,
+    4, 5, 6,
+    4, 7, 6,
+    1, 5, 6,
+    1, 2, 6,
+    0, 4, 7,
+    0, 3, 7,
+    0, 4, 5,
+    5, 1, 0,
+    3, 7, 6,
+    3, 2, 6
   };
 
-  int depth = 1;
-  size_t tc = counter(depth);
-  int direction = 1;
-  int max_depth = 10;
+  size_t side_size = 3;
+  size_t indices_count = sizeof(indices) / sizeof(uint);
+  size_t positions_count = indices_count * 3;
 
-  for (int i = 0; should_close; i++) {
-    double value = sin(step * i);
-    double zero = 0.0001;
-    if (value > -zero && value < zero) {
-      int direction_step = 1;//sin(step * i) == 0 ? 1 : 0;//(int)floor(sin(step * i));
-      if (depth >= max_depth) {
-        direction = -direction_step;
-      }
-      else if (depth <= 1) {
-        direction = direction_step;
-      }
-      depth = (depth + direction);
-      tc = counter(depth);
-      size_t output_size = tc * sizeof(Triangle);
-      size_t centers_size = tc * sizeof(Triangle);
+  float positions[positions_count];
 
-      int index = 0;
-      vertices(src, zero_origin, depth, output, centers, &index);
-
-      glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
-      glBufferData(GL_ARRAY_BUFFER, output_size, (float *)output, GL_STATIC_DRAW);
-
-      glBindBuffer(GL_ARRAY_BUFFER, vbos[1]);
-      glBufferData(GL_ARRAY_BUFFER, centers_size, (float *)centers, GL_STATIC_DRAW);
+  for (int i = 0; i < indices_count; i++) {
+    float *side = sides[indices[i]];
+    size_t base = i * side_size;
+    for (int j = 0; j < side_size; j++) {
+      positions[base + j] = side[j];
+      printf("%f ", side[j]);
     }
+    printf("\n");
+  }
 
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+ 
+  for (int i = 0; should_close; i++) {
     glUniform1f(angleLocation, step * i);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, tc * 3);
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(cube));
+
     glfwSwapBuffers(window);
     glfwPollEvents();    
   }
