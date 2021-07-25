@@ -14,7 +14,7 @@ void set_matrix(float **vectors, int vectors_count, float *output) {
 
 float *make_matrix(float **vectors, int vectors_count) {
   int total_number_of_components = vectors_count * COMPONENTS_COUNT;
-  float *output = malloc(total_number_of_components * sizeof(float));
+  float *output = (float *)malloc(total_number_of_components * sizeof(float));
   set_matrix(vectors, vectors_count, output);
   return output;
 }

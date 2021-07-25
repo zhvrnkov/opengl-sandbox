@@ -22,43 +22,48 @@
 
 GLFWwindow* window;
 
-static const GLfloat cube[][3] = {
-    {-1.0f,-1.0f,-1.0f},
-    {-1.0f,-1.0f, 1.0f},
-    {-1.0f, 1.0f, 1.0f},
-    {1.0f, 1.0f,-1.0f},
-    {-1.0f,-1.0f,-1.0f},
-    {-1.0f, 1.0f,-1.0f},
-    {1.0f,-1.0f, 1.0f},
-    {-1.0f,-1.0f,-1.0f},
-    {1.0f,-1.0f,-1.0f},
-    {1.0f, 1.0f,-1.0f},
-    {1.0f,-1.0f,-1.0f},
-    {-1.0f,-1.0f,-1.0f},
-    {-1.0f,-1.0f,-1.0f},
-    {-1.0f, 1.0f, 1.0f},
-    {-1.0f, 1.0f,-1.0f},
-    {1.0f,-1.0f, 1.0f},
-    {-1.0f,-1.0f, 1.0f},
-    {-1.0f,-1.0f,-1.0f},
-    {-1.0f, 1.0f, 1.0f},
-    {-1.0f,-1.0f, 1.0f},
-    {1.0f,-1.0f, 1.0f},
-    {1.0f, 1.0f, 1.0f},
-    {1.0f,-1.0f,-1.0f},
-    {1.0f, 1.0f,-1.0f},
-    {1.0f,-1.0f,-1.0f},
-    {1.0f, 1.0f, 1.0f},
-    {1.0f,-1.0f, 1.0f},
-    {1.0f, 1.0f, 1.0f},
-    {1.0f, 1.0f,-1.0f},
-    {-1.0f, 1.0f,-1.0f},
-    {1.0f, 1.0f, 1.0f},
-    {-1.0f, 1.0f,-1.0f},
-    {-1.0f, 1.0f, 1.0f},
-    {1.0f, 1.0f, 1.0f},
-    {-1.0f, 1.0f, 1.0f},
-    {1.0f,-1.0f, 1.0f}
+static float verticess[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
 int main(void) 
@@ -76,77 +81,51 @@ int main(void)
 
 	glewExperimental = 1;
   glewInit();
+  glEnable(GL_DEPTH_TEST);
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
   GLuint program = reload_shaders();
-
-  GLuint vao;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  size_t stride = sizeof(float) * 3 + sizeof(int);
-  GLuint vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-  glEnableVertexAttribArray(0);
-
+  
   int angleLocation = glGetUniformLocation(program, "angle");
 
   float step = M_PI / 64;
-  float sides[][3] = {
-    {-1.0, 1.0, 1.0},
-    {1.0, 1.0, 1.0},
-    {1.0, -1.0, 1.0},
-    {-1.0, -1.0, 1.0},
-    {-1.0, 1.0, -1.0},
-    {1.0, 1.0, -1.0},
-    {1.0, -1.0, -1.0},
-    {-1.0, -1.0, -1.0},
-  };
-  
-  uint indices[] = {
-    0, 1, 2,
-    0, 3, 2,
-    4, 5, 6,
-    4, 7, 6,
-    1, 5, 6,
-    1, 2, 6,
-    0, 4, 7,
-    0, 3, 7,
-    0, 4, 5,
-    5, 1, 0,
-    3, 7, 6,
-    3, 2, 6
-  };
 
-  size_t side_size = 3;
-  size_t indices_count = sizeof(indices) / sizeof(uint);
-  size_t positions_count = indices_count * 3;
+  uint vbo, vao;
+  glGenVertexArrays(1, &vao);
+  glGenBuffers(1, &vbo);
 
-  float positions[positions_count];
-
-  for (int i = 0; i < indices_count; i++) {
-    float *side = sides[indices[i]];
-    size_t base = i * side_size;
-    for (int j = 0; j < side_size; j++) {
-      positions[base + j] = side[j];
-      printf("%f ", side[j]);
-    }
-    printf("\n");
-  }
+  glBindVertexArray(vao);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
- 
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verticess), verticess, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  int width, height, nrChannels;
+  // stbi_set_flip_vertically_on_load(true);
+  unsigned char *data = stbi_load("/home/vz/fun/opengl-tutorial/sandbox/container.jpg", &width, &height, &nrChannels, 0);
+  if (!data) {
+    fprintf(stderr, "no data\n");
+  }
+  uint texture1;
+  glGenTextures(1, &texture1);
+  glBindTexture(GL_TEXTURE_2D, texture1);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  stbi_image_free(data);
+  
   for (int i = 0; should_close; i++) {
     glUniform1f(angleLocation, step * i);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(cube));
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
 
     glfwSwapBuffers(window);
     glfwPollEvents();    

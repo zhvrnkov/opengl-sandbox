@@ -34,7 +34,7 @@ char *slurp_file(const char *file_path)
     long size = ftell(f);
     if (size < 0) SLURP_FILE_PANIC;
 
-    char *buffer = malloc(size + 1);
+    char *buffer = (char *)malloc(size + 1);
     if (buffer == NULL) SLURP_FILE_PANIC;
 
     if (fseek(f, 0, SEEK_SET) < 0) SLURP_FILE_PANIC;
