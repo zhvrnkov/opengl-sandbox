@@ -235,3 +235,24 @@ Triangle triangle_multiply(Triangle tr, Space space) {
   output.c = mvmultiply(tr.c, space);
   return output;
 }
+
+void translation_matrix(Vertex translation, float *output) {
+  int cols = 4;
+  int rows = 4;
+  
+  for (int i = 0; i < cols * rows; i++) {
+    int col = i / cols;
+    if (i % rows == col) {
+      output[i] = 1;
+    }
+    else {
+      output[i] = 0;
+    }
+  }
+  output[3] = translation.x;
+  output[3 + 4] = translation.y;
+  output[3 + 4 + 4] = translation.z;
+}
+
+void rotation_matrix(Vertex rotation, float radians, float *output) {
+}

@@ -41,5 +41,7 @@ Triangle shiftx(Triangle, float);
 Triangle shifty(Triangle, float);
 Vertex triangle_center(Triangle);
 Triangle triangle_multiply(Triangle, Space);
+void translation_matrix(Vertex translation, float *output);
+void rotation_matrix(Vertex rotation, float radians, float *output);
 
 #endif

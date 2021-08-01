@@ -66,6 +66,18 @@ static float verticess[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
+static Vertex translations[] = {
+  0,   0,   0,
+  0.5, 0,   0,
+  0,   0.5, 0
+};
+
+static Vertex rotationVectors[] = {
+  0, 0, 0,
+  0, 0, 0,
+  0, 0, 0,
+};
+
 int main(void) 
 {
   glfwInit();
@@ -89,9 +101,11 @@ int main(void)
 
   GLuint program = reload_shaders();
   
-  int angleLocation = glGetUniformLocation(program, "angle");
-
-  float step = M_PI / 64;
+  int objectIndexUniform = glGetUniformLocation(program, "object_index");
+  int translationsUniform = glGetUniformLocation(program, "translations");
+  int rotationVectorsUniform = glGetUniformLocation(program, "rotation_vectors");
+  int rotationAnglesUniform = glGetUniformLocation(program, "rotation_angles");
+  int cameraYAngleUniform = glGetUniformLocation(program, "camera_angle");
 
   uint vbo, vao;
   glGenVertexArrays(1, &vao);
@@ -121,12 +135,25 @@ int main(void)
   glGenerateMipmap(GL_TEXTURE_2D);
   stbi_image_free(data);
   
+  size_t translations_count = sizeof(translations) / sizeof(Vertex);
+  glUniform3fv(translationsUniform, translations_count, translations);
+  glUniform3fv(rotationVectorsUniform, translations_count, rotationVectors);
+
+  float step = M_PI / 128;
+  float *angles = (float *)malloc(translations_count * sizeof(float));
+  
   for (int i = 0; should_close; i++) {
-    glUniform1f(angleLocation, step * i);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUniform1f(cameraYAngleUniform, step * i);
+    
+    for (int j = 0; j < translations_count; j++) {
+      angles[j] = step * i;
+      glUniform1fv(rotationAnglesUniform, translations_count, angles);
 
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
+      glUniform1i(objectIndexUniform, j);
 
+      glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
+    }
     glfwSwapBuffers(window);
     glfwPollEvents();    
   }
