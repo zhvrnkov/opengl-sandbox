@@ -60,21 +60,51 @@ mat4 rotate(mat4 src, float angle, vec3 vector) {
 }
 
 mat4 make_model(vec3 translation, vec3 rotationVector, float rotationAngle) {
-  return rotate(translate(translation), rotationAngle, rotationVector);
+  mat4 rotation = rotate(mat4(1), rotationAngle, rotationVector);
+  mat4 trans = translate(translation);
+  return trans * rotation;
 }
 
 mat4 make_view() {
-  return mat4(1.0);
+  return translate(vec3(0, 0, -3));
 }
 
-mat4 make_projection() {
-  float xra = PI / 2 + PI / 16;
-  float xrs = xra + PI / 2;
-  mat3 projection = mat3(1, 0,          0,
-                         0, sin(xra), sin(xrs),
-                         0, cos(xra), cos(xrs));
-  return mat4(projection);
+mat4 make_projection(float w, float h, float n, float f) {
+  float r = w / 2;
+  float l = -w / 2;
+  
+  float t = h / 2;
+  float b = -h / 2;
+
+  vec4 xCol = vec4(2 * n / (r - l),
+                   0,
+                   0,
+                   0);
+  vec4 yCol = vec4(0,
+                   2 * n / (t - b),
+                   0,
+                   0);
+  vec4 zCol = vec4((r + l) / (r - l),
+                   (t + b) / (t - b),
+                   -(f + n) / (f - n),
+                   -1);
+  vec4 wCol = vec4(0,
+                   0,
+                   (-2 * f * n) / (f - n),
+                   1);
+  return mat4(xCol, yCol, zCol, wCol);
 }
+
+mat4 make_projection_angle(float fovY, float aspectRatio, float n, float f) {
+  const float DEG2RAD = 3.14159265 / 180;
+  float halfH = tan(fovY / 2 * DEG2RAD) * n;
+  float halfW = halfH * aspectRatio;
+  float w = halfW * 2;
+  float h = halfH * 2;
+  return make_projection(w, h, n, f);
+}
+
+uniform mat4 projection;
 
 void main() {
   vec3 translation = translations[object_index];
@@ -84,8 +114,8 @@ void main() {
 
   mat4 model = make_model(translation, rotationVector, rotationAngle);
   mat4 view = make_view();
-  mat4 projection = make_projection();
+  mat4 p = make_projection_angle(45.0, 1, 0.1, 100);
 
-  gl_Position = projection * view * model * vec4(position, 3);
+  gl_Position = p * view * model * vec4(position, 1);
   tex_coord = a_tex_coord;
 }

@@ -67,16 +67,40 @@ static float verticess[] = {
 };
 
 static Vertex translations[] = {
-  0,   0,   0,
-  0.5, 0,   0,
-  0,   0.5, 0
+  /* 0,   0,   0, */
+  /* 0.5, 0,   0, */
+  /* 0,   0.5, 0, */
+  /* 0,   0,   0.5, */
+  /* 0,   0,   -0.5, */
+  /* -0.5,   0,   -0.0, */
+  /* 0,   -0.5, 0, */
+  0.0f,  0.0f,  0.0f,
+  2.0f,  5.0f, -15.0f,
+  -1.5f, -2.2f, -2.5f,
+  -3.8f, -2.0f, -12.3f,
+  2.4f, -0.4f, -3.5f,
+  -1.7f,  3.0f, -7.5f,
+  1.3f, -2.0f, -2.5f,
+  1.5f,  2.0f, -2.5f,
+  1.5f,  0.2f, -1.5f,
+  -1.3f,  1.0f, -1.5f
 };
 
 static Vertex rotationVectors[] = {
-  0, 0, 0,
-  0, 0, 0,
-  0, 0, 0,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
+  1.0, 0.3, 0.5,
 };
+
+const float SCR_WIDTH = 1000;
+const float SCR_HEIGHT = 1000;
 
 int main(void) 
 {
@@ -88,7 +112,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(1000, 1000,"Tutorial 02 - Red triangle", NULL, NULL);
+	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT,"Tutorial 02 - Red triangle", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
 	glewExperimental = 1;
@@ -136,10 +160,10 @@ int main(void)
   stbi_image_free(data);
   
   size_t translations_count = sizeof(translations) / sizeof(Vertex);
-  glUniform3fv(translationsUniform, translations_count, translations);
-  glUniform3fv(rotationVectorsUniform, translations_count, rotationVectors);
+  glUniform3fv(translationsUniform, translations_count, (float *)translations);
+  glUniform3fv(rotationVectorsUniform, translations_count, (float *)rotationVectors);
 
-  float step = M_PI / 128;
+  float step = M_PI / 1024;
   float *angles = (float *)malloc(translations_count * sizeof(float));
   
   for (int i = 0; should_close; i++) {
@@ -147,7 +171,7 @@ int main(void)
     glUniform1f(cameraYAngleUniform, step * i);
     
     for (int j = 0; j < translations_count; j++) {
-      angles[j] = step * i;
+      angles[j] = step * i * (j + 1);
       glUniform1fv(rotationAnglesUniform, translations_count, angles);
 
       glUniform1i(objectIndexUniform, j);
