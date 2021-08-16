@@ -20,6 +20,8 @@
 
 #define should_close glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0
 
+void processInput(GLFWwindow *window);
+
 GLFWwindow* window;
 
 static float verticess[] = {
@@ -102,6 +104,12 @@ static Vertex rotationVectors[] = {
 const float SCR_WIDTH = 1000;
 const float SCR_HEIGHT = 1000;
 
+Vertex cameraPos = {
+  .x = 0.0,
+  .y = 0.0,
+  .z = -10.0
+};
+
 int main(void) 
 {
   glfwInit();
@@ -130,6 +138,7 @@ int main(void)
   int rotationVectorsUniform = glGetUniformLocation(program, "rotation_vectors");
   int rotationAnglesUniform = glGetUniformLocation(program, "rotation_angles");
   int cameraYAngleUniform = glGetUniformLocation(program, "camera_angle");
+  int cameraPosUniform = glGetUniformLocation(program, "camera_pos");
 
   uint vbo, vao;
   glGenVertexArrays(1, &vao);
@@ -167,8 +176,11 @@ int main(void)
   float *angles = (float *)malloc(translations_count * sizeof(float));
   
   for (int i = 0; should_close; i++) {
+
+    processInput(window);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUniform1f(cameraYAngleUniform, step * i);
+    glUniform3fv(cameraPosUniform, 1, (float *)&cameraPos);
     
     for (int j = 0; j < translations_count; j++) {
       angles[j] = step * i * (j + 1);
@@ -185,4 +197,22 @@ int main(void)
 	glfwTerminate();
 
 	return 0;
+}
+
+void processInput(GLFWwindow *window) {
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
+
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    cameraPos.z += 0.1;
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    cameraPos.z -= 0.1;
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    cameraPos.x += 0.1;
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    cameraPos.x -= 0.1;
+  if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+    cameraPos.y += 0.1;
+  if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+    cameraPos.y -= 0.1;
 }

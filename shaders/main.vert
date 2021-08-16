@@ -12,6 +12,8 @@ uniform vec3 rotation_vectors[OBJECTS_COUNT];
 uniform float rotation_angles[OBJECTS_COUNT];
 uniform float camera_angle;
 
+uniform vec3 camera_pos;
+
 out vec2 tex_coord;
 
 float radians(float angle) {
@@ -65,8 +67,50 @@ mat4 make_model(vec3 translation, vec3 rotationVector, float rotationAngle) {
   return trans * rotation;
 }
 
+float direction_angle(vec2 position, vec2 direction_from_position) {
+  const float RAD2DEG = 180.0 / 3.14159265;
+  float ddot = dot(position, direction_from_position);
+  float llength = length(position) * length(direction_from_position);
+  if (llength == 0.0) {
+    return 0.0;
+  }
+  else {
+   	float cos_alpha = clamp(ddot / llength, -1.0, 1.0);
+  	return acos(cos_alpha);// * RAD2DEG; 
+  }
+}
+
+float sign(float x) {
+  if (x < 0.0) {
+    return -1.0;
+  }
+  else {
+    return 1.0;
+  }
+}
+
+vec3 direction_angles(vec3 position, vec3 direction) {
+  vec3 dir_from_positions = direction - position;
+  float x_angle = direction_angle(vec2(0, 1), dir_from_positions.yz) * sign(position.y);
+  float y_angle = direction_angle(vec2(0, 1),  dir_from_positions.xz) * -sign(position.x);
+  float z_angle = 0; // direction_angle(position.xy, dir_from_positions.xy);
+  
+  return vec3(x_angle, y_angle, z_angle);
+}
+
 mat4 make_view() {
-  return translate(vec3(0, 0, -3));
+//  return rotate(translate(vec3(0, 0, 13)), PI, vec3(0, 1, 0));
+  vec3 direction = vec3(0.0);
+  vec3 da = direction_angles(camera_pos, direction);
+  mat4 tr = translate(camera_pos);
+  mat4 trx = rotate(tr, da.x, vec3(1, 0, 0));
+  mat4 trxy = rotate(trx, -da.y, vec3(0, 1, 0));
+  return trxy;
+  return rotate(translate(vec3(1, 0, -3)), PI / 6, vec3(0, 0, 1));
+}
+
+mat4 make_camera(vec3 position) {
+  return translate(position);
 }
 
 mat4 make_projection(float w, float h, float n, float f) {
