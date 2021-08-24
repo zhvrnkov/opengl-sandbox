@@ -75,41 +75,7 @@ mat4 make_model(vec3 translation, vec3 rotationVector, float rotationAngle) {
   return trans * rotation;
 }
 
-float direction_angle(vec2 position, vec2 direction_from_position) {
-  const float RAD2DEG = 180.0 / 3.14159265;
-  float ddot = dot(position, direction_from_position);
-  float llength = length(position) * length(direction_from_position);
-  if (llength == 0.0) {
-    return 0.0;
-  }
-  else {
-   	float cos_alpha = clamp(ddot / llength, -1.0, 1.0);
-  	return acos(cos_alpha);// * RAD2DEG; 
-  }
-}
-
-float sign(float x) {
-  if (x == 0.0) {
-   	return 0.0;
-  }
-  else if (x < 0.0) {
-    return -1.0;
-  }
-  else {
-    return 1.0;
-  }
-}
-
-vec3 direction_angles(vec3 position, vec3 direction) {
-  vec3 dir_from_positions = direction - position;
-  float x_angle = direction_angle(vec2(0, 1), dir_from_positions.yz) * sign(position.y);
-  float y_angle = direction_angle(vec2(0, 1), dir_from_positions.xz) * sign(position.x);
-  float z_angle = 0.0; // direction_angle(position.xy, dir_from_positions.xy);
-  
-  return vec3(x_angle, y_angle, z_angle);
-}
-
-mat4 clever_direction_angles(vec3 position, vec3 direction, vec3 up) {
+mat4 make_view(vec3 position, vec3 direction, vec3 up) {
   vec3 dfp = normalize(position - direction);
   vec3 newZ = dfp;
   vec3 newX = normalize(cross(up, newZ));
@@ -120,10 +86,6 @@ mat4 clever_direction_angles(vec3 position, vec3 direction, vec3 up) {
   tr[2].xyz = vec3(newX.z, newY.z, newZ.z);
   return tr * translate(-position);
   return tr;
-}
-
-mat4 make_view() {
-  return clever_direction_angles(camera_pos, camera_direction, vec3(0.0, 1.0, 0.0));
 }
 
 mat4 make_projection(float w, float h, float n, float f) {
@@ -170,7 +132,7 @@ void main() {
   float rotationAngle = rotation_angles[object_index];
 
   mat4 model = make_model(translation, rotationVector, rotationAngle);
-  mat4 view = make_view();
+  mat4 view = make_view(camera_pos, camera_direction, vec3(0.0, 1.0, 0.0));
   mat4 p = make_projection_angle(45.0, 1, 0.1, 100);
 
   gl_Position = p * view * model * vec4(position, 1);
