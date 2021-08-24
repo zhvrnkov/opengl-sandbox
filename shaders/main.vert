@@ -10,9 +10,10 @@ uniform int object_index;
 uniform vec3 translations[OBJECTS_COUNT];
 uniform vec3 rotation_vectors[OBJECTS_COUNT];
 uniform float rotation_angles[OBJECTS_COUNT];
-uniform float camera_angle;
+uniform float time;
 
 uniform vec3 camera_pos;
+uniform vec3 camera_direction;
 
 out vec2 tex_coord;
 
@@ -57,8 +58,15 @@ mat4 rotate(mat4 src, float angle, vec3 vector) {
                     0.0, xy_vec.y, xz_vec.y, 0.0,  
                     0.0, xy_vec.z, xz_vec.z, 0.0,  
                     0.0, 0.0, 0.0, 1.0);
-  mat4 no_t = mat4(mat3(src));
   return z_rot * x_rot * y_rot * src;
+}
+
+mat4 rotate_x(mat4 src, float angle) {
+  return rotate(src, angle, vec3(1, 0, 0));
+}
+
+mat4 rotate_y(mat4 src, float angle) {
+  return rotate(src, angle, vec3(0, 1, 0));
 }
 
 mat4 make_model(vec3 translation, vec3 rotationVector, float rotationAngle) {
@@ -81,7 +89,10 @@ float direction_angle(vec2 position, vec2 direction_from_position) {
 }
 
 float sign(float x) {
-  if (x < 0.0) {
+  if (x == 0.0) {
+   	return 0.0;
+  }
+  else if (x < 0.0) {
     return -1.0;
   }
   else {
@@ -92,25 +103,27 @@ float sign(float x) {
 vec3 direction_angles(vec3 position, vec3 direction) {
   vec3 dir_from_positions = direction - position;
   float x_angle = direction_angle(vec2(0, 1), dir_from_positions.yz) * sign(position.y);
-  float y_angle = direction_angle(vec2(0, 1),  dir_from_positions.xz) * -sign(position.x);
-  float z_angle = 0; // direction_angle(position.xy, dir_from_positions.xy);
+  float y_angle = direction_angle(vec2(0, 1), dir_from_positions.xz) * sign(position.x);
+  float z_angle = 0.0; // direction_angle(position.xy, dir_from_positions.xy);
   
   return vec3(x_angle, y_angle, z_angle);
 }
 
-mat4 make_view() {
-//  return rotate(translate(vec3(0, 0, 13)), PI, vec3(0, 1, 0));
-  vec3 direction = vec3(0.0);
-  vec3 da = direction_angles(camera_pos, direction);
-  mat4 tr = translate(camera_pos);
-  mat4 trx = rotate(tr, da.x, vec3(1, 0, 0));
-  mat4 trxy = rotate(trx, -da.y, vec3(0, 1, 0));
-  return trxy;
-  return rotate(translate(vec3(1, 0, -3)), PI / 6, vec3(0, 0, 1));
+mat4 clever_direction_angles(vec3 position, vec3 direction, vec3 up) {
+  vec3 dfp = normalize(position - direction);
+  vec3 newZ = dfp;
+  vec3 newX = normalize(cross(up, newZ));
+  vec3 newY = normalize(cross(newZ, newX));
+  mat4 tr = mat4(1.0);
+  tr[0].xyz = vec3(newX.x, newY.x, newZ.x);
+  tr[1].xyz = vec3(newX.y, newY.y, newZ.y);
+  tr[2].xyz = vec3(newX.z, newY.z, newZ.z);
+  return tr * translate(-position);
+  return tr;
 }
 
-mat4 make_camera(vec3 position) {
-  return translate(position);
+mat4 make_view() {
+  return clever_direction_angles(camera_pos, camera_direction, vec3(0.0, 1.0, 0.0));
 }
 
 mat4 make_projection(float w, float h, float n, float f) {
@@ -135,7 +148,7 @@ mat4 make_projection(float w, float h, float n, float f) {
   vec4 wCol = vec4(0,
                    0,
                    (-2 * f * n) / (f - n),
-                   1);
+                   0);
   return mat4(xCol, yCol, zCol, wCol);
 }
 

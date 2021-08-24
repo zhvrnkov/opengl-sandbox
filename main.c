@@ -107,7 +107,13 @@ const float SCR_HEIGHT = 1000;
 Vertex cameraPos = {
   .x = 0.0,
   .y = 0.0,
-  .z = -10.0
+  .z = 10.0
+};
+
+Vertex cameraDirection = {
+  .x = 0.0,
+  .y = 0.0,
+  .z = 0.0
 };
 
 int main(void) 
@@ -137,8 +143,9 @@ int main(void)
   int translationsUniform = glGetUniformLocation(program, "translations");
   int rotationVectorsUniform = glGetUniformLocation(program, "rotation_vectors");
   int rotationAnglesUniform = glGetUniformLocation(program, "rotation_angles");
-  int cameraYAngleUniform = glGetUniformLocation(program, "camera_angle");
+  int timeUniform = glGetUniformLocation(program, "time");
   int cameraPosUniform = glGetUniformLocation(program, "camera_pos");
+  int cameraDirectionUniform = glGetUniformLocation(program, "camera_direction");
 
   uint vbo, vao;
   glGenVertexArrays(1, &vao);
@@ -179,8 +186,9 @@ int main(void)
 
     processInput(window);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUniform1f(cameraYAngleUniform, step * i);
+    glUniform1f(timeUniform, glfwGetTime());
     glUniform3fv(cameraPosUniform, 1, (float *)&cameraPos);
+    glUniform3fv(cameraDirectionUniform, 1, (float *)&cameraDirection);
     
     for (int j = 0; j < translations_count; j++) {
       angles[j] = step * i * (j + 1);
@@ -215,4 +223,16 @@ void processInput(GLFWwindow *window) {
     cameraPos.y += 0.1;
   if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     cameraPos.y -= 0.1;
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    cameraDirection.y += 0.1;
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    cameraDirection.y -= 0.1;
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    cameraDirection.x -= 0.1;
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    cameraDirection.x += 0.1;
+  if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+    cameraDirection = (const Vertex){0};
+    cameraPos = (const Vertex){0};
+  }
 }
