@@ -29,6 +29,14 @@ Vertex sum(Vertex *array, size_t count) {
   return output;
 }
 
+Vertex sum2(Vertex x, Vertex y) {
+  Vertex output = {0};
+  output.x = x.x + y.x;
+  output.y = x.y + y.y;
+  output.z = x.z + y.z;
+  return output;
+}
+
 Vertex multiply(Vertex vector, float scalar) {
   Vertex output;
   output.x = vector.x * scalar;
@@ -252,6 +260,14 @@ void translation_matrix(Vertex translation, float *output) {
   output[3] = translation.x;
   output[3 + 4] = translation.y;
   output[3 + 4 + 4] = translation.z;
+}
+
+float magnitude(Vertex x) {
+  return sqrtf(powf(x.x, 2) + powf(x.y, 2) + powf(x.z, 2));
+}
+
+Vertex normalized(Vertex x) {
+  return multiply(x, 1 / magnitude(x));
 }
 
 void rotation_matrix(Vertex rotation, float radians, float *output) {

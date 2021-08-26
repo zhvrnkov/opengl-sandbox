@@ -209,10 +209,13 @@ int main(void)
 	return 0;
 }
 
-float cameraXZAngle(Vertex direction, Vertex initialDirection) {
-  float initialAngle = acosf(initialDirection.x);
-  float directionAngle = acosf(direction.x);
-  return directionAngle - initialAngle;
+float vectorXZAngle(Vertex vector) {
+  if (vector.z == 1 || vector.z == -1) {
+    return asinf(vector.z);
+  }
+  else {
+    return (vector.z > 0) ? acosf(vector.x) : -acosf(vector.x);
+  }
 }
 
 Vertex rotateXZCamera(Vertex direction, float angle) {
@@ -229,17 +232,23 @@ Vertex rotateXZCamera(Vertex direction, float angle) {
 void processInput(GLFWwindow *window) {
 
   float angle = M_PI / 128;
-  float initialAngle = acosf(initialCameraDirection.x);
-  float directionAngle = acosf(cameraDirection.x);
+  float initialAngle = vectorXZAngle(initialCameraDirection);
+  float directionAngle = vectorXZAngle(cameraDirection);
   float cameraAngle = directionAngle - initialAngle;
 
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cameraPos.z -= 0.1;
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cameraPos.z += 0.1;
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    Vertex d = normalized(cameraDirection);
+    Vertex delta = multiply(d, 0.1);
+    cameraPos = sum2(cameraPos, delta);
+  }
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    Vertex d = normalized(cameraDirection);
+    Vertex delta = multiply(d, -0.1);
+    cameraPos = sum2(cameraPos, delta);
+  }
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     cameraPos.x += 0.1;
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
@@ -249,17 +258,23 @@ void processInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     cameraPos.y -= 0.1;
   if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    cameraDirection.y += 0.1;
+    cameraDirection.y += 0.01;
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    cameraDirection.y -= 0.1;
+    cameraDirection.y -= 0.01;
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+    printf("%f -> %f: ", directionAngle, directionAngle - angle);
+    printf("%f %f -> ", cameraDirection.x, cameraDirection.z);
     cameraDirection = rotateXZCamera(cameraDirection, directionAngle - angle);
-//    printf("%f - %f = %f | %f\n", cameraAngle, angle, cameraAngle - angle, cameraXZAngle(cameraDirection, initialCameraDirection));
+    printf("%f %f\n", cameraDirection.x, cameraDirection.z);
   }
-  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    printf("%f -> %f: ", directionAngle, directionAngle - angle);
+    printf("%f %f -> ", cameraDirection.x, cameraDirection.z);
     cameraDirection = rotateXZCamera(cameraDirection, directionAngle + angle);
+    printf("%f %f\n", cameraDirection.x, cameraDirection.z);
+  }
   if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
-    cameraDirection = (const Vertex){0};
+    cameraDirection = initialCameraDirection;
     cameraPos = (const Vertex){0};
   }
 }

@@ -25,6 +25,7 @@ typedef struct {
 void set_matrix(float **vectors, int vectors_count, float *output);
 float *make_matrix(float **vectors, int vectors_count);
 Vertex sum(Vertex *array, size_t count);
+Vertex sum2(Vertex x, Vertex y);
 Vertex multiply(Vertex vector, float scalar);
 Vertex transformed(Vertex vector, Space space);
 Vertex transformeds(Vertex vector, Space *spaces, size_t space_count);
@@ -43,5 +44,8 @@ Vertex triangle_center(Triangle);
 Triangle triangle_multiply(Triangle, Space);
 void translation_matrix(Vertex translation, float *output);
 void rotation_matrix(Vertex rotation, float radians, float *output);
+
+float magnitude(Vertex x);
+Vertex normalized(Vertex x);
 
 #endif
