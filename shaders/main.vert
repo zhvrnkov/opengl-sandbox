@@ -132,7 +132,7 @@ void main() {
   float rotationAngle = rotation_angles[object_index];
 
   mat4 model = make_model(translation, rotationVector, rotationAngle);
-  mat4 view = make_view(camera_pos, camera_direction, vec3(0.0, 1.0, 0.0));
+  mat4 view = make_view(camera_pos, camera_pos + camera_direction, vec3(0.0, 1.0, 0.0));
   mat4 p = make_projection_angle(45.0, 1, 0.1, 100);
 
   gl_Position = p * view * model * vec4(position, 1);
