@@ -201,7 +201,7 @@ int main(void)
     glUniform3fv(upUniform, 1, (float *)&up);
     
     for (int j = 0; j < translations_count; j++) {
-      angles[j] = 0; //step * i * (j + 1);
+      angles[j] = step * i * (j + 1);
       glUniform1fv(rotationAnglesUniform, translations_count, angles);
 
       glUniform1i(objectIndexUniform, j);
@@ -308,5 +308,8 @@ void processInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
     cameraDirection = initialCameraDirection;
     cameraPos = (const Vertex){0};
+    up.x = 0.0;
+    up.y = 1.0;
+    up.z = 0.0;
   }
 }
