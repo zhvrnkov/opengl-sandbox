@@ -1,8 +1,8 @@
 GL_PKGS=glfw3 glew
-FILES=main.c common/linear_algebra.c shaders/setup.c common/recursive_triangle.c
+FILES=main.c common/linear_algebra.c shaders/setup.c common/recursive_triangle.c common/camera.c
 CFLAGS=-Wall -Wextra
 
-run: c
+run: cpp
 	./main
 
 c:

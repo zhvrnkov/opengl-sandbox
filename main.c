@@ -14,6 +14,7 @@
 #include "common/linear_algebra.h"
 #include "common/recursive_triangle.h"
 #include "shaders/setup.h"
+#include "common/camera.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -68,61 +69,39 @@ static float verticess[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
-static Vertex translations[] = {
-  /* 0,   0,   0, */
-  /* 0.5, 0,   0, */
-  /* 0,   0.5, 0, */
-  /* 0,   0,   0.5, */
-  /* 0,   0,   -0.5, */
-  /* -0.5,   0,   -0.0, */
-  /* 0,   -0.5, 0, */
-  0.0f,  0.0f,  0.0f,
-  2.0f,  5.0f, -15.0f,
-  -1.5f, -2.2f, -2.5f,
-  -3.8f, -2.0f, -12.3f,
-  2.4f, -0.4f, -3.5f,
-  -1.7f,  3.0f, -7.5f,
-  1.3f, -2.0f, -2.5f,
-  1.5f,  2.0f, -2.5f,
-  1.5f,  0.2f, -1.5f,
-  -1.3f,  1.0f, -1.5f
+vec3 translations[] = {
+  vec3( 0.0f,  0.0f,  0.0f),
+  vec3( 2.0f,  5.0f, -15.0f),
+  vec3(-1.5f, -2.2f, -2.5f),
+  vec3(-3.8f, -2.0f, -12.3f),
+  vec3 (2.4f, -0.4f, -3.5f),
+  vec3(-1.7f,  3.0f, -7.5f),
+  vec3( 1.3f, -2.0f, -2.5f),
+  vec3( 1.5f,  2.0f, -2.5f),
+  vec3( 1.5f,  0.2f, -1.5f),
+  vec3(-1.3f,  1.0f, -1.5f)
 };
 
-static Vertex rotationVectors[] = {
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
-  1.0, 0.3, 0.5,
+vec3 rotationVectors[] = {
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
+  vec3(1.0, 0.3, 0.5),
 };
 
 const float SCR_WIDTH = 1000;
 const float SCR_HEIGHT = 1000;
 
-Vertex cameraPos = {
-  .x = 0.0,
-  .y = 0.0,
-  .z = 10.0
-};
-
-const Vertex initialCameraDirection = {
-  .x = 0.0,
-  .y = 0.0,
-  .z = -1.0
-};
-
-Vertex cameraDirection = initialCameraDirection;
-
-Vertex up = {
-  .x = 0.0,
-  .y = 1.0,
-  .z = 0.0
-};
+vec3 cameraPos = vec3(0.0, 0.0, 10.0);
+const vec3 initialCameraDirection = vec3(0.0, 0.0, -1.0);
+vec3 cameraDirection = initialCameraDirection;
+vec3 up = vec3(0.0, 1.0, 0.0);
 
 int main(void) 
 {
@@ -145,16 +124,14 @@ int main(void)
 
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-  GLuint program = reload_shaders();
+  GLuint program = reload_shaders("./shaders/main.vert", "./shaders/main.frag");
+
+//  GLuint lightProgram = reload_shaders("./shaders/main.lightning.vert", "./shaders/main.lightning.frag");
   
-  int objectIndexUniform = glGetUniformLocation(program, "object_index");
-  int translationsUniform = glGetUniformLocation(program, "translations");
-  int rotationVectorsUniform = glGetUniformLocation(program, "rotation_vectors");
-  int rotationAnglesUniform = glGetUniformLocation(program, "rotation_angles");
+  int modelUniform = glGetUniformLocation(program, "model");
+  int viewUniform = glGetUniformLocation(program, "view");
+  int projectionUniform = glGetUniformLocation(program, "projection");
   int timeUniform = glGetUniformLocation(program, "time");
-  int cameraPosUniform = glGetUniformLocation(program, "camera_pos");
-  int cameraDirectionUniform = glGetUniformLocation(program, "camera_direction");
-  int upUniform = glGetUniformLocation(program, "up");
 
   uint vbo, vao;
   glGenVertexArrays(1, &vao);
@@ -185,26 +162,43 @@ int main(void)
   stbi_image_free(data);
   
   size_t translations_count = sizeof(translations) / sizeof(Vertex);
-  glUniform3fv(translationsUniform, translations_count, (float *)translations);
-  glUniform3fv(rotationVectorsUniform, translations_count, (float *)rotationVectors);
 
   float step = M_PI / 1024;
   float *angles = (float *)malloc(translations_count * sizeof(float));
+
+  // LIGHT
+  GLuint lightVao;
+  glGenVertexArrays(1, &lightVao);
+  glBindVertexArray(lightVao);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  // END OF LIGHT
+
+  mat4 model;
+  mat4 view;
+  mat4 projection = make_projection_angle(45.0, 1, 0.1, 100);
   
   for (int i = 0; should_close; i++) {
 
     processInput(window);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glUniform1f(timeUniform, glfwGetTime());
-    glUniform3fv(cameraPosUniform, 1, (float *)&cameraPos);
-    glUniform3fv(cameraDirectionUniform, 1, (float *)&cameraDirection);
-    glUniform3fv(upUniform, 1, (float *)&up);
-    
+
+    view = make_view(cameraPos, cameraPos + cameraDirection, up);
+
+    glUniform3fv(viewUniform, 1, (float *)&view[0][0]);
+    glUniform3fv(projectionUniform, 1, (float *)&projection[0][0]);
+        
+    glBindVertexArray(vao);
     for (int j = 0; j < translations_count; j++) {
       angles[j] = step * i * (j + 1);
-      glUniform1fv(rotationAnglesUniform, translations_count, angles);
+      model = make_model(translations[j], rotationVectors[j], angles[j]);
 
-      glUniform1i(objectIndexUniform, j);
+      glUniform3fv(modelUniform, 1, (float *)&model[0][0]);
 
       glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
     }
@@ -217,33 +211,25 @@ int main(void)
 	return 0;
 }
 
-float vectorXZAngle(Vertex vector) {
+float vectorXZAngle(vec3 vector) {
   return (vector.z > 0) ? acosf(vector.x) : -acosf(vector.x);
 }
 
-float vectorYZAngle(Vertex vector) {
+float vectorYZAngle(vec3 vector) {
   return (vector.y > 0) ? acosf(vector.z) : -acosf(vector.z);
 }
 
-Vertex rotateXZCamera(Vertex direction, float angle) {
+vec3 rotateXZCamera(vec3 direction, float angle) {
   float s = sinf(angle);
   float c = cosf(angle);
-  Vertex output = {
-    .x = c,
-    .y = direction.y,
-    .z = s
-  };
+  vec3 output = vec3(c, direction.y, s);
   return output;
 }
 
-Vertex rotateYZCamera(Vertex direction, float angle) {
+vec3 rotateYZCamera(vec3 direction, float angle) {
   float s = sinf(angle);
   float c = cosf(angle);
-  Vertex output = {
-    .x = direction.x,
-    .y = s,
-    .z = c
-  };
+  vec3 output = vec3(direction.x, s, c);
   return output;
 }
 
@@ -266,14 +252,14 @@ void processInput(GLFWwindow *window) {
     glfwSetWindowShouldClose(window, true);
 
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    Vertex d = normalized(cameraDirection);
-    Vertex delta = multiply(d, 0.1);
-    cameraPos = sum2(cameraPos, delta);
+    vec3 d = normalize(cameraDirection);
+    vec3 delta = d * 0.1f;
+    cameraPos = cameraPos + delta;
   }
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    Vertex d = normalized(cameraDirection);
-    Vertex delta = multiply(d, -0.1);
-    cameraPos = sum2(cameraPos, delta);
+    vec3 d = normalize(cameraDirection);
+    vec3 delta = d * (-0.1f);
+    cameraPos = cameraPos + delta;
   }
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     cameraPos.x += 0.1;
@@ -288,7 +274,7 @@ void processInput(GLFWwindow *window) {
     float oldCos = sign(cosf(directionYZAngle));
     float newCos = sign(cosf(directionYZAngle - angle));
     if (oldCos != newCos) {
-      up = multiply(up, -1.0);
+      up = up * -1.0f;
     }
   }
   if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
@@ -296,7 +282,7 @@ void processInput(GLFWwindow *window) {
     float oldCos = sign(cosf(directionYZAngle));
     float newCos = sign(cosf(directionYZAngle + angle));
     if (oldCos != newCos) {
-      up = multiply(up, -1.0);
+      up = up * -1.0f;
     }
   }
   if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
@@ -307,7 +293,7 @@ void processInput(GLFWwindow *window) {
   }
   if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
     cameraDirection = initialCameraDirection;
-    cameraPos = (const Vertex){0};
+    cameraPos = vec3(0.0);
     up.x = 0.0;
     up.y = 1.0;
     up.z = 0.0;

@@ -102,16 +102,16 @@ bool link_program(GLuint vert_shader, GLuint frag_shader, GLuint *program)
     return program;
 }
 
-GLuint reload_shaders(void) {
+GLuint reload_shaders(const char *vert_shader_path, const char *frag_shader_path) {
     glDeleteProgram(program);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     GLuint vert = 0;
-    compile_shader_file("./shaders/main.vert", GL_VERTEX_SHADER, &vert);
+    compile_shader_file(vert_shader_path, GL_VERTEX_SHADER, &vert);
 
     GLuint frag = 0;
-    compile_shader_file("./shaders/main.frag", GL_FRAGMENT_SHADER, &frag);
+    compile_shader_file(frag_shader_path, GL_FRAGMENT_SHADER, &frag);
 
     link_program(vert, frag, &program);
 
