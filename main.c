@@ -150,7 +150,7 @@ int main(void)
 
   int width, height, nrChannels;
   // stbi_set_flip_vertically_on_load(true);
-  unsigned char *data = stbi_load("/home/vz/fun/opengl-tutorial/sandbox/container.jpg", &width, &height, &nrChannels, 0);
+  unsigned char *data = stbi_load("./container.jpg", &width, &height, &nrChannels, 0);
   if (!data) {
     fprintf(stderr, "no data\n");
   }
