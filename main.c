@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -15,6 +16,8 @@
 #include "common/recursive_triangle.h"
 #include "shaders/setup.h"
 #include "common/camera.h"
+
+#include <glm/gtx/string_cast.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -190,21 +193,25 @@ int main(void)
 
     view = make_view(cameraPos, cameraPos + cameraDirection, up);
 
-    glUniform3fv(viewUniform, 1, (float *)&view[0][0]);
-    glUniform3fv(projectionUniform, 1, (float *)&projection[0][0]);
+    glUniformMatrix4fv(viewUniform, 1, 0, (float *)&view[0][0]);
+    glUniformMatrix4fv(projectionUniform, 1, 0, (float *)&projection[0][0]);
         
     glBindVertexArray(vao);
     for (int j = 0; j < translations_count; j++) {
       angles[j] = step * i * (j + 1);
       model = make_model(translations[j], rotationVectors[j], angles[j]);
 
-      glUniform3fv(modelUniform, 1, (float *)&model[0][0]);
+      glUniformMatrix4fv(modelUniform, 1, 0, (float *)&model[0][0]);
 
       glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
     }
     glfwSwapBuffers(window);
     glfwPollEvents();    
   }
+
+  std::cout << glm::to_string(model) << std::endl;
+  std::cout << glm::to_string(view) << std::endl;
+  std::cout << glm::to_string(projection) << std::endl;
   
 	glfwTerminate();
 

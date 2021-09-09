@@ -9,6 +9,7 @@ layout(location = 1) in vec2 a_tex_coord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform float time;
 
 out vec2 tex_coord;
 
