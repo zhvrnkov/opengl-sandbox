@@ -13,7 +13,7 @@
 #include <GLFW/glfw3.h>
 
 #include "common/linear_algebra.h"
-#include "common/recursive_triangle.h"
+// #include "common/recursive_triangle.h"
 #include "shaders/setup.h"
 #include "common/camera.h"
 
@@ -28,48 +28,48 @@ void processInput(GLFWwindow *window);
 
 GLFWwindow* window;
 
-static float verticess[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+float vertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
 vec3 translations[] = {
@@ -98,7 +98,7 @@ vec3 rotationVectors[] = {
   vec3(1.0, 0.3, 0.5),
 };
 
-vec3 lightTranslation = vec3(1.0f, 1.0f, 1.0f);
+vec3 lightTranslation = vec3(1.0f, 1.0f, -5.0f);
 
 const float SCR_WIDTH = 1000;
 const float SCR_HEIGHT = 1000;
@@ -136,6 +136,9 @@ int main(void)
   int viewUniform = glGetUniformLocation(program, "view");
   int projectionUniform = glGetUniformLocation(program, "projection");
   int timeUniform = glGetUniformLocation(program, "time");
+  int objectColorUniform = glGetUniformLocation(program, "objectColor");
+  int lightColorUniform = glGetUniformLocation(program, "lightColor");
+  int lightPosUniform = glGetUniformLocation(program, "lightPos");
 
   int light_modelUniform = glGetUniformLocation(lightProgram, "model");
   int light_viewUniform = glGetUniformLocation(lightProgram, "view");
@@ -149,12 +152,12 @@ int main(void)
   glBindVertexArray(vao);
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(verticess), verticess, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
   int width, height, nrChannels;
@@ -177,16 +180,13 @@ int main(void)
 
   // LIGHT
   GLuint lightVao;
-  //  GLuint lightVBO;
 
-  //  glGenBuffers(1, &lightVBO);
   glGenVertexArrays(1, &lightVao);
   
   glBindVertexArray(lightVao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-  /* glBufferData(GL_ARRAY_BUFFER, sizeof(verticess), verticess, GL_STATIC_DRAW); */
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
   // END OF LIGHT
@@ -194,12 +194,20 @@ int main(void)
   mat4 model;
   mat4 view;
   mat4 projection = make_projection_angle(45.0, 1, 0.1, 100);
-  
+  vec3 objectColor = vec3(1.0f, 0.5f, 0.31f);
+  vec3 lightColor = vec3(1.0f);
+
+  float a = 0;
   for (int i = 0; should_close; i++) {
 
     processInput(window);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    lightTranslation.x = cosf(a);
+    lightTranslation.y = sinf(a);
+    lightTranslation.z = sinf(a / 4) * 10 - 3.0;
+    a += M_PI / 256;
 
     glUseProgram(lightProgram);
     glBindVertexArray(lightVao);
@@ -207,9 +215,12 @@ int main(void)
     glUniformMatrix4fv(light_modelUniform, 1, 0, (float *)&model[0][0]);
     glUniformMatrix4fv(light_viewUniform, 1, 0, (float *)&view[0][0]);
     glUniformMatrix4fv(light_projectionUniform, 1, 0, (float *)&projection[0][0]);
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float));
 
     glUseProgram(program);
+    glUniform3fv(objectColorUniform, 1, (float *)&objectColor[0]);
+    glUniform3fv(lightColorUniform, 1, (float *)&lightColor[0]);
+    glUniform3fv(lightPosUniform, 1, (float *)&lightTranslation[0]);
     glBindVertexArray(vao);
     glUniform1f(timeUniform, glfwGetTime());
 
@@ -219,21 +230,17 @@ int main(void)
     glUniformMatrix4fv(projectionUniform, 1, 0, (float *)&projection[0][0]);
 
     for (int j = 0; j < translations_count; j++) {
-      angles[j] = step * i * (j + 1);
+      // angles[j] = step * i * (j + 1);
       model = make_model(translations[j], rotationVectors[j], angles[j]);
 
       glUniformMatrix4fv(modelUniform, 1, 0, (float *)&model[0][0]);
 
-      glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
+      glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float));
     }
     
     glfwSwapBuffers(window);
     glfwPollEvents();    
   }
-
-  std::cout << glm::to_string(model) << std::endl;
-  std::cout << glm::to_string(view) << std::endl;
-  std::cout << glm::to_string(projection) << std::endl;
   
 	glfwTerminate();
 
