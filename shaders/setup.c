@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <stdarg.h>
 
-GLuint program = 0;
 GLint resolution_location = 0;
 GLint time_location = 0;
 
@@ -102,8 +101,10 @@ bool link_program(GLuint vert_shader, GLuint frag_shader, GLuint *program)
     return program;
 }
 
-GLuint reload_shaders(const char *vert_shader_path, const char *frag_shader_path) {
-    glDeleteProgram(program);
+GLuint reload_shaders(const char *vert_shader_path, const char *frag_shader_path, int oldProgram) {
+    glDeleteProgram(oldProgram);
+
+    GLuint program = 0;
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 

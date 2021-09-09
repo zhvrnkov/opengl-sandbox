@@ -98,6 +98,8 @@ vec3 rotationVectors[] = {
   vec3(1.0, 0.3, 0.5),
 };
 
+vec3 lightTranslation = vec3(1.0f, 1.0f, 1.0f);
+
 const float SCR_WIDTH = 1000;
 const float SCR_HEIGHT = 1000;
 
@@ -127,14 +129,18 @@ int main(void)
 
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-  GLuint program = reload_shaders("./shaders/main.vert", "./shaders/main.frag");
-
-//  GLuint lightProgram = reload_shaders("./shaders/main.lightning.vert", "./shaders/main.lightning.frag");
+  GLuint program = reload_shaders("./shaders/main.vert", "./shaders/main.frag", 0);
+  GLuint lightProgram = reload_shaders("./shaders/main.lightning.vert", "./shaders/main.lightning.frag", 0);
   
   int modelUniform = glGetUniformLocation(program, "model");
   int viewUniform = glGetUniformLocation(program, "view");
   int projectionUniform = glGetUniformLocation(program, "projection");
   int timeUniform = glGetUniformLocation(program, "time");
+
+  int light_modelUniform = glGetUniformLocation(lightProgram, "model");
+  int light_viewUniform = glGetUniformLocation(lightProgram, "view");
+  int light_projectionUniform = glGetUniformLocation(lightProgram, "projection");
+  /* int light_timeUniform = glGetUniformLocation(lightProgram, "time"); */
 
   uint vbo, vao;
   glGenVertexArrays(1, &vao);
@@ -171,10 +177,16 @@ int main(void)
 
   // LIGHT
   GLuint lightVao;
+  //  GLuint lightVBO;
+
+  //  glGenBuffers(1, &lightVBO);
   glGenVertexArrays(1, &lightVao);
+  
   glBindVertexArray(lightVao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+  /* glBufferData(GL_ARRAY_BUFFER, sizeof(verticess), verticess, GL_STATIC_DRAW); */
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
 
   // END OF LIGHT
@@ -189,14 +201,23 @@ int main(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glUseProgram(lightProgram);
+    glBindVertexArray(lightVao);
+    model = make_model(lightTranslation, vec3(1.0f), 0.0f);
+    glUniformMatrix4fv(light_modelUniform, 1, 0, (float *)&model[0][0]);
+    glUniformMatrix4fv(light_viewUniform, 1, 0, (float *)&view[0][0]);
+    glUniformMatrix4fv(light_projectionUniform, 1, 0, (float *)&projection[0][0]);
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
+
+    glUseProgram(program);
+    glBindVertexArray(vao);
     glUniform1f(timeUniform, glfwGetTime());
 
     view = make_view(cameraPos, cameraPos + cameraDirection, up);
 
     glUniformMatrix4fv(viewUniform, 1, 0, (float *)&view[0][0]);
     glUniformMatrix4fv(projectionUniform, 1, 0, (float *)&projection[0][0]);
-        
-    glBindVertexArray(vao);
+
     for (int j = 0; j < translations_count; j++) {
       angles[j] = step * i * (j + 1);
       model = make_model(translations[j], rotationVectors[j], angles[j]);
@@ -205,6 +226,7 @@ int main(void)
 
       glDrawArrays(GL_TRIANGLES, 0, sizeof(verticess) / sizeof(float));
     }
+    
     glfwSwapBuffers(window);
     glfwPollEvents();    
   }
