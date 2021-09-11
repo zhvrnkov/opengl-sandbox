@@ -139,6 +139,7 @@ int main(void)
   int objectColorUniform = glGetUniformLocation(program, "objectColor");
   int lightColorUniform = glGetUniformLocation(program, "lightColor");
   int lightPosUniform = glGetUniformLocation(program, "lightPos");
+  int viewPosUniform = glGetUniformLocation(program, "viewPos");
 
   int light_modelUniform = glGetUniformLocation(lightProgram, "model");
   int light_viewUniform = glGetUniformLocation(lightProgram, "view");
@@ -221,6 +222,7 @@ int main(void)
     glUniform3fv(objectColorUniform, 1, (float *)&objectColor[0]);
     glUniform3fv(lightColorUniform, 1, (float *)&lightColor[0]);
     glUniform3fv(lightPosUniform, 1, (float *)&lightTranslation[0]);
+    glUniform3fv(viewPosUniform, 1, (float *)&cameraPos[0]);
     glBindVertexArray(vao);
     glUniform1f(timeUniform, glfwGetTime());
 

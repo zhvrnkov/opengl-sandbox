@@ -9,6 +9,9 @@ c:
 	gcc $(CGLAGS) `pkg-config --cflags $(GL_PKGS)` -lm -o main $(FILES) `pkg-config --libs $(GL_PKGS)`
 
 cpp:
+	g++ $(CGLAGS) `pkg-config --cflags $(GL_PKGS)` -lm -o main $(FILES) `pkg-config --libs $(GL_PKGS)`
+
+cpp_osx:
 	g++ $(CGLAGS) `pkg-config --cflags $(GL_PKGS)` -lm -o main $(FILES) `pkg-config --libs $(GL_PKGS)` -framework OpenGL
 
 shader: common/shader.cpp

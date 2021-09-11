@@ -15,10 +15,9 @@ out vec3 outNormal;
 out vec3 fragPosition;
 
 void main() {
-  mat4 modelWithoutTranslation = model;
-  modelWithoutTranslation[3].xyz = vec3(0.0);
+  mat3 modelWithoutTranslation = mat3(transpose(inverse(model)));
 
   gl_Position = projection * view * model * vec4(position, 1);
-  outNormal = vec3(modelWithoutTranslation * vec4(normal, 1));
+  outNormal = modelWithoutTranslation * normal;
   fragPosition = vec3(model * vec4(position, 1));
 }
