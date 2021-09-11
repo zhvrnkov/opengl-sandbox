@@ -230,7 +230,7 @@ int main(void)
     glUniformMatrix4fv(projectionUniform, 1, 0, (float *)&projection[0][0]);
 
     for (int j = 0; j < translations_count; j++) {
-      // angles[j] = step * i * (j + 1);
+      angles[j] = step * i * (j + 1);
       model = make_model(translations[j], rotationVectors[j], angles[j]);
 
       glUniformMatrix4fv(modelUniform, 1, 0, (float *)&model[0][0]);
