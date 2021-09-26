@@ -62,6 +62,7 @@ mat4 make_view(vec3 position, vec3 direction, vec3 up) {
   tr[1] = vec4(newX.y, newY.y, newZ.y, tr[1].w);
   tr[2] = vec4(newX.z, newY.z, newZ.z, tr[2].w);
   return tr * translate(-position);
+  return tr;
 }
 
 mat4 make_projection(float w, float h, float n, float f) {
