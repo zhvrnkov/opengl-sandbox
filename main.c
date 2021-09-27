@@ -22,9 +22,14 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include "common/materials.h"
+#include "common/light.h"
+
 #define should_close glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0
 
 void processInput(GLFWwindow *window);
+void glMaterial(GLuint program, Material material);
+void glLight(GLuint program, Light light);
 
 GLFWwindow* window;
 
@@ -98,7 +103,13 @@ vec3 rotationVectors[] = {
   vec3(1.0, 0.3, 0.5),
 };
 
-vec3 lightTranslation = vec3(1.0f, 1.0f, -5.0f);
+Light light = {
+  .position = vec3(1.0f, 1.0f, -5.0f),
+  .ambient = vec3(0.0f),
+  .diffuse = vec3(0.0f),
+  .specular = vec3(1.0f, 1.0f, 1.0f),
+  .color = vec3(1.0f)
+};
 
 const float SCR_WIDTH = 1000;
 const float SCR_HEIGHT = 1000;
@@ -137,14 +148,11 @@ int main(void)
   int projectionUniform = glGetUniformLocation(program, "projection");
   int timeUniform = glGetUniformLocation(program, "time");
   int objectColorUniform = glGetUniformLocation(program, "objectColor");
-  int lightColorUniform = glGetUniformLocation(program, "lightColor");
-  int lightPosUniform = glGetUniformLocation(program, "lightPos");
   int viewPosUniform = glGetUniformLocation(program, "viewPos");
 
   int light_modelUniform = glGetUniformLocation(lightProgram, "model");
   int light_viewUniform = glGetUniformLocation(lightProgram, "view");
   int light_projectionUniform = glGetUniformLocation(lightProgram, "projection");
-  /* int light_timeUniform = glGetUniformLocation(lightProgram, "time"); */
 
   uint vbo, vao;
   glGenVertexArrays(1, &vao);
@@ -196,7 +204,7 @@ int main(void)
   mat4 view;
   mat4 projection = make_projection_angle(45.0, 1, 0.1, 100);
   vec3 objectColor = vec3(1.0f, 0.5f, 0.31f);
-  vec3 lightColor = vec3(1.0f);
+  float time = 0;
 
   float a = 0;
   for (int i = 0; should_close; i++) {
@@ -205,26 +213,28 @@ int main(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    lightTranslation.x = cosf(a);
-    lightTranslation.y = sinf(a);
-    lightTranslation.z = sinf(a / 4) * 10 - 3.0;
+    light.position.x = cosf(a);
+    light.position.y = sinf(a);
+    light.position.z = sinf(a / 4) * 10 - 3.0;
     a += M_PI / 256;
+    time = glfwGetTime();
+    light_update(time, &light);
 
     glUseProgram(lightProgram);
     glBindVertexArray(lightVao);
-    model = make_model(lightTranslation, vec3(1.0f), 0.0f);
+    model = make_model(light.position, vec3(1.0f), 0.0f);
     glUniformMatrix4fv(light_modelUniform, 1, 0, (float *)&model[0][0]);
     glUniformMatrix4fv(light_viewUniform, 1, 0, (float *)&view[0][0]);
     glUniformMatrix4fv(light_projectionUniform, 1, 0, (float *)&projection[0][0]);
+    glLight(lightProgram, light);
     glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float));
 
     glUseProgram(program);
     glUniform3fv(objectColorUniform, 1, (float *)&objectColor[0]);
-    glUniform3fv(lightColorUniform, 1, (float *)&lightColor[0]);
-    glUniform3fv(lightPosUniform, 1, (float *)&lightTranslation[0]);
     glUniform3fv(viewPosUniform, 1, (float *)&cameraPos[0]);
     glBindVertexArray(vao);
-    glUniform1f(timeUniform, glfwGetTime());
+    glUniform1f(timeUniform, time);
+    glLight(program, light);
 
     view = make_view(cameraPos, cameraPos + cameraDirection, up);
 
@@ -236,7 +246,8 @@ int main(void)
       model = make_model(translations[j], rotationVectors[j], angles[j]);
 
       glUniformMatrix4fv(modelUniform, 1, 0, (float *)&model[0][0]);
-
+      
+      glMaterial(program, materials[j]);
       glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float));
     }
     
@@ -336,4 +347,28 @@ void processInput(GLFWwindow *window) {
     up.y = 1.0;
     up.z = 0.0;
   }
+}
+
+void glMaterial(GLuint program, Material material) {
+  int ambient = glGetUniformLocation(program, "material.ambient");
+  int diffuse = glGetUniformLocation(program, "material.diffuse");
+  int specular = glGetUniformLocation(program, "material.specular");
+  int shininess = glGetUniformLocation(program, "material.shininess");
+
+  glUniform3fv(ambient, 1, (float *)&material.ambient[0]);
+  glUniform3fv(diffuse, 1, (float *)&material.diffuse[0]);
+  glUniform3fv(specular, 1, (float *)&material.specular[0]);
+  glUniform1f(shininess, material.shininess);
+}
+
+void glLight(GLuint program, Light light) {
+  int position = glGetUniformLocation(program, "light.position");
+  int ambient = glGetUniformLocation(program, "light.ambient");
+  int diffuse = glGetUniformLocation(program, "light.diffuse");
+  int specular = glGetUniformLocation(program, "light.specular");
+
+  glUniform3fv(position, 1, (float *)&light.position[0]);
+  glUniform3fv(ambient, 1, (float *)&light.ambient[0]);
+  glUniform3fv(diffuse, 1, (float *)&light.diffuse[0]);
+  glUniform3fv(specular, 1, (float *)&light.specular[0]);
 }
