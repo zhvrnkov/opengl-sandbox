@@ -7,5 +7,8 @@ uniform mat4 projection;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+  float ar = 1080.0 / 1920.0;
+  vec4 p = projection * view * model * vec4(aPos, 1);
+  p.x = p.x * ar;
+  gl_Position = p;
 } 

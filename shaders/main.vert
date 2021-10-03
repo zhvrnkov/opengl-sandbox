@@ -18,8 +18,11 @@ out vec2 TexCoord;
 
 void main() {
   mat3 modelWithoutTranslation = mat3(transpose(inverse(model)));
-
-  gl_Position = projection * view * model * vec4(position, 1);
+  
+  float ar = 1080.0 / 1920.0;
+  vec4 p = projection * view * model * vec4(position, 1);
+  p.x = p.x * ar;
+  gl_Position = p;
   outNormal = modelWithoutTranslation * normal;
   fragPosition = vec3(model * vec4(position, 1));
   TexCoord = aTexCoord;

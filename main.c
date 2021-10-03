@@ -114,8 +114,8 @@ Light light = {
   .color = vec3(1.0f)
 };
 
-const float SCR_WIDTH = 1000;
-const float SCR_HEIGHT = 1000;
+const float SCR_WIDTH = 1920;
+const float SCR_HEIGHT = 1080;
 
 vec3 cameraPos = vec3(0.0, 0.0, 10.0);
 const vec3 initialCameraDirection = vec3(0.0, 0.0, -1.0);
@@ -138,6 +138,7 @@ int main(void)
 	glewExperimental = 1;
   glewInit();
   glEnable(GL_DEPTH_TEST);
+  glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
