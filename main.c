@@ -177,6 +177,7 @@ int main(void)
 
   unsigned int diffuseMap = loadTexture("./container2.png");
   unsigned int specularMap = loadTexture("./container2_specular.png");
+  unsigned int emissionMap = loadTexture("./matrix.jpg");
   size_t translations_count = sizeof(translations) / sizeof(Vertex);
 
   float step = M_PI / 1024;
@@ -206,6 +207,14 @@ int main(void)
   Material material;
   material.specular = vec3(0.5f, 0.5f, 0.5f);
   material.shininess = 64.0f;
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, diffuseMap);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, specularMap);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, emissionMap);
+
   for (int i = 0; should_close; i++) {
 
     processInput(window);
@@ -239,10 +248,6 @@ int main(void)
 
     glUniformMatrix4fv(viewUniform, 1, 0, (float *)&view[0][0]);
     glUniformMatrix4fv(projectionUniform, 1, 0, (float *)&projection[0][0]);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuseMap);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specularMap);
 
     for (int j = 0; j < translations_count; j++) {
       angles[j] = step * i * (j + 1);
@@ -368,9 +373,11 @@ void glMapMaterial(GLuint program, Material material) {
   int diffuse = glGetUniformLocation(program, "material.diffuse");
   int specular = glGetUniformLocation(program, "material.specular");
   int shininess = glGetUniformLocation(program, "material.shininess");
+  int emission = glGetUniformLocation(program, "material.emission");
 
   glUniform1i(diffuse, 0);
   glUniform1i(specular, 1);
+  glUniform1i(emission, 2);
   glUniform1f(shininess, material.shininess);
 }
 

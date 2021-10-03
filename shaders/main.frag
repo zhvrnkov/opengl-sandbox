@@ -2,6 +2,10 @@
 
 #define PI 3.1415926538
 
+bool in_range(float value, float down, float up) {
+  return value > down && value < up;
+}
+
 struct Material {
   vec3 ambient;
   vec3 diffuse;
@@ -12,6 +16,7 @@ struct Material {
 struct MapMaterial {
   sampler2D diffuse;
   sampler2D specular;
+  sampler2D emission;
   float shininess;
 };
 
@@ -25,6 +30,7 @@ struct Light {
 uniform MapMaterial material;
 uniform Light light;
 uniform vec3 viewPos;
+uniform float time;
 
 in vec3 outNormal;
 in vec3 fragPosition;
@@ -46,8 +52,14 @@ void main() {
   vec3 reflection = reflect(-lightDir, norm);
   vec3 viewDir = normalize(viewPos - fragPosition);
   float spec = pow(max(dot(reflection, viewDir), 0.0), material.shininess);
-  vec3 specular = vec3(texture(material.specular, TexCoord)) * spec * light.specular;
+  vec3 specularTexture = vec3(texture(material.specular, TexCoord));
+  vec3 specular = specularTexture * spec * light.specular;
 
-  vec3 result = diffuse + specular + ambient;
+  vec3 emission = vec3(0.0);
+  if (in_range(TexCoord.x, 0.1, 0.9) && in_range(TexCoord.y, 0.1, 0.9)) {
+    emission = vec3(texture(material.emission, (TexCoord * 0.8) + vec2(0.0, time)));
+    emission *= (sin(time) / 2 + 1);
+  }
+  vec3 result = diffuse + specular + ambient + emission;
   color = vec4(result, 1.0);
 }
