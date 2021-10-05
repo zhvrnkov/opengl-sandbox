@@ -383,16 +383,29 @@ void glMapMaterial(GLuint program, Material material) {
 
 void glLight(GLuint program, Light light) {
   int position = glGetUniformLocation(program, "light.position");
+  int direction = glGetUniformLocation(program, "light.direction");
   int ambient = glGetUniformLocation(program, "light.ambient");
   int diffuse = glGetUniformLocation(program, "light.diffuse");
   int specular = glGetUniformLocation(program, "light.specular");
   int color = glGetUniformLocation(program, "light.color");
+  int constant = glGetUniformLocation(program, "light.constant");
+  int linear = glGetUniformLocation(program, "light.linear");
+  int quadratic = glGetUniformLocation(program, "light.quadratic");
+  int cutoff = glGetUniformLocation(program, "light.cutoff");
+  int outerCutoff = glGetUniformLocation(program, "light.outerCutoff");
 
-  glUniform3fv(position, 1, (float *)&light.position[0]);
+  vec3 dir = vec3(-0.2f, -1.0f, -0.3f);
+  glUniform3fv(position, 1, (float *)&cameraPos[0]);
+  glUniform3fv(direction, 1, (float *)&cameraDirection[0]);
   glUniform3fv(ambient, 1, (float *)&light.ambient[0]);
   glUniform3fv(diffuse, 1, (float *)&light.diffuse[0]);
   glUniform3fv(specular, 1, (float *)&light.specular[0]);
   glUniform3fv(color, 1, (float *)&light.color[0]);
+  glUniform1f(constant,  1.0f);
+  glUniform1f(linear,    0.09f);
+  glUniform1f(quadratic, 0.032f);
+  glUniform1f(cutoff, cos(radians(12.5f)));
+  glUniform1f(outerCutoff, cos(radians(17.5f)));
 }
 
 unsigned int loadTexture(char const * path)

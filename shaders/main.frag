@@ -22,9 +22,16 @@ struct MapMaterial {
 
 struct Light {
   vec3 position;
+  vec3 direction;
+  float cutoff;
+  float outerCutoff;
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
+
+  float constant;
+  float linear;
+  float quadratic;
 };
 
 uniform MapMaterial material;
@@ -44,6 +51,9 @@ void main() {
 
   vec3 norm = normalize(outNormal);
   vec3 lightDir = normalize(light.position - fragPosition);
+  float distance = length(light.position - fragPosition);
+  float attenuation = 1.0 / (light.constant + light.linear * distance + 
+                             light.quadratic * (distance * distance));
 
   float lightAmount = dot(norm, lightDir);
   float diff = max(lightAmount, 0.0);
@@ -60,6 +70,14 @@ void main() {
     emission = vec3(texture(material.emission, (TexCoord * 0.8) + vec2(0.0, time)));
     emission *= (sin(time) / 2 + 1);
   }
-  vec3 result = diffuse + specular + ambient + emission;
+  float theta = dot(lightDir, normalize(-light.direction));
+  float epsilon = light.cutoff - light.outerCutoff;
+  float intensity = clamp((theta - light.outerCutoff) / epsilon, 0.0, 1.0);
+
+
+  diffuse *= attenuation * intensity;
+  specular *= attenuation * intensity;
+  ambient *= attenuation;
+  vec3 result = diffuse + specular + ambient;
   color = vec4(result, 1.0);
 }
