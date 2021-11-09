@@ -22,6 +22,7 @@ void main() {
   float ar = 1080.0 / 1920.0;
   vec4 p = projection * view * model * vec4(position, 1);
   p.x = p.x * ar;
+//  p.xy *= 5;
   gl_Position = p;
   outNormal = modelWithoutTranslation * normal;
   fragPosition = vec3(model * vec4(position, 1));

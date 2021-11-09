@@ -114,6 +114,15 @@ Light light = {
   .color = vec3(1.0f)
 };
 
+const float fullScreenCoords[] = {
+  -1.0f, -1.0f,
+   1.0f, -1.0f,
+   1.0f,  1.0f,
+   1.0f,  1.0f,
+  -1.0f,  1.0f,
+  -1.0f, -1.0f,
+};
+
 const float SCR_WIDTH = 1920;
 const float SCR_HEIGHT = 1080;
 
@@ -132,12 +141,14 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); 
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT,"Tutorial 02 - Red triangle", NULL, NULL);
+	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT,"OpenGL", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
 	glewExperimental = 1;
   glewInit();
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_STENCIL_TEST);
+
   glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -146,6 +157,7 @@ int main(void)
 
   GLuint program = reload_shaders("./shaders/main.vert", "./shaders/main.frag", 0);
   GLuint lightProgram = reload_shaders("./shaders/main.lightning.vert", "./shaders/main.lightning.frag", 0);
+  GLuint backgroundProgram = reload_shaders("./shaders/main.background.vert", "./shaders/main.background.frag", 0);
   
   int modelUniform = glGetUniformLocation(program, "model");
   int viewUniform = glGetUniformLocation(program, "view");
@@ -175,6 +187,20 @@ int main(void)
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
+  glUseProgram(backgroundProgram);
+  uint background_vbo, background_vao;
+  glGenVertexArrays(1, &background_vao);
+  glGenBuffers(1, &background_vbo);
+
+  glBindVertexArray(background_vao);
+  glBindBuffer(GL_ARRAY_BUFFER, background_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(fullScreenCoords), fullScreenCoords, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  glUseProgram(program);
+  glBindVertexArray(vao);
+
   unsigned int diffuseMap = loadTexture("./container2.png");
   unsigned int specularMap = loadTexture("./container2_specular.png");
   unsigned int emissionMap = loadTexture("./matrix.jpg");
@@ -201,6 +227,7 @@ int main(void)
   mat4 projection = make_projection_angle(45.0, 1, 0.1, 100);
   vec3 objectColor = vec3(1.0f, 0.5f, 0.31f);
   float time = 0;
+  float cubeScaleFactor = 1.0f;
 
   float a = 0;
 
@@ -216,10 +243,12 @@ int main(void)
   glBindTexture(GL_TEXTURE_2D, emissionMap);
 
   for (int i = 0; should_close; i++) {
-
+    
+    glEnable(GL_DEPTH_TEST);
     processInput(window);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glStencilMask(0xff);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     light.position.x = cosf(a);
     light.position.y = sinf(a);
@@ -235,7 +264,7 @@ int main(void)
     glUniformMatrix4fv(light_viewUniform, 1, 0, (float *)&view[0][0]);
     glUniformMatrix4fv(light_projectionUniform, 1, 0, (float *)&projection[0][0]);
     glLight(lightProgram, light);
-    glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (sizeof(float) * 8));
+    /* glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (sizeof(float) * 8)); */
 
     glUseProgram(program);
     glUniform3fv(objectColorUniform, 1, (float *)&objectColor[0]);
@@ -249,9 +278,55 @@ int main(void)
     glUniformMatrix4fv(viewUniform, 1, 0, (float *)&view[0][0]);
     glUniformMatrix4fv(projectionUniform, 1, 0, (float *)&projection[0][0]);
 
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
+    glStencilFunc(GL_ALWAYS, 1, 0xff);
+    cubeScaleFactor = 1.1f;
     for (int j = 0; j < translations_count; j++) {
       angles[j] = step * i * (j + 1);
       model = make_model(translations[j], rotationVectors[j], angles[j]);
+
+      model[0].x *= cubeScaleFactor;
+      model[0].y *= cubeScaleFactor;
+      model[0].z *= cubeScaleFactor;
+      model[1].x *= cubeScaleFactor;
+      model[1].y *= cubeScaleFactor;
+      model[1].z *= cubeScaleFactor;
+      model[2].x *= cubeScaleFactor;
+      model[2].y *= cubeScaleFactor;
+      model[2].z *= cubeScaleFactor;
+
+      glUniformMatrix4fv(modelUniform, 1, 0, (float *)&model[0][0]);
+      
+      glMapMaterial(program, material);
+      glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / (sizeof(float) * 8));
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glStencilFunc(GL_NOTEQUAL, 0, 0xff);
+    glStencilMask(0x00);
+    cubeScaleFactor = 1.0f;
+//    glDisable(GL_DEPTH_TEST);
+    glUseProgram(backgroundProgram);
+    glBindVertexArray(background_vao);
+    glDrawArrays(GL_TRIANGLES, 0, sizeof(fullScreenCoords) / (sizeof(float) * 2));
+
+    glUseProgram(program);
+    glBindVertexArray(vao);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    for (int j = 0; j < translations_count; j++) {
+      angles[j] = step * i * (j + 1);
+      model = make_model(translations[j], rotationVectors[j], angles[j]);
+
+      model[0].x *= cubeScaleFactor;
+      model[0].y *= cubeScaleFactor;
+      model[0].z *= cubeScaleFactor;
+      model[1].x *= cubeScaleFactor;
+      model[1].y *= cubeScaleFactor;
+      model[1].z *= cubeScaleFactor;
+      model[2].x *= cubeScaleFactor;
+      model[2].y *= cubeScaleFactor;
+      model[2].z *= cubeScaleFactor;
 
       glUniformMatrix4fv(modelUniform, 1, 0, (float *)&model[0][0]);
       
